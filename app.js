@@ -437,29 +437,6 @@ function setupNavigation() {
 
 // User Profile Integration
 function setupProfile() {
-    const nameEl = document.getElementById('user-name');
-    const avatarEl = document.getElementById('user-avatar');
-    
-    if (!nameEl || !avatarEl) return;
-    
-    // Load Saved State
-    const savedName = localStorage.getItem('bioguard_user') || 'Responsable de Calidad';
-    nameEl.innerText = savedName;
-    updateAvatar(savedName);
-
-    nameEl.addEventListener('blur', () => {
-        const newName = nameEl.innerText.trim() || 'Responsable de Calidad';
-        localStorage.setItem('bioguard_user', newName);
-        updateAvatar(newName);
-    });
-
-    nameEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            nameEl.blur();
-        }
-    });
-    
     renderEstablishmentDropdown();
 }
 
