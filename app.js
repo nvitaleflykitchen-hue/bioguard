@@ -169,7 +169,18 @@ function initAuth() {
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
             if (error) {
-                errEl.textContent = 'Credenciales incorrectas. Verificá tu correo y contraseña.';
+                console.error("Login Auth Error:", error);
+                
+                let errorMsg = 'Credenciales incorrectas.';
+                if (error.message.includes('Email not confirmed')) {
+                    errorMsg = 'Debés confirmar tu correo electrónico primero. Revisá tu bandeja de entrada.';
+                } else if (error.message.includes('Invalid login credentials')) {
+                    errorMsg = 'Correo o contraseña equivocados. Verificá y volvé a intentar.';
+                } else {
+                    errorMsg = 'Error: ' + error.message;
+                }
+                
+                errEl.textContent = errorMsg;
                 errEl.classList.remove('hidden');
                 btn.disabled = false;
                 btnText.textContent = 'Ingresar Segurizado';
