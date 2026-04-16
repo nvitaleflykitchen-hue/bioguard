@@ -253,16 +253,19 @@
                             <select class="header-inline-select"><option>Últimos 6 meses</option></select>
                         </div>
                         <div class="canvas-wrapper" style="display:flex; align-items:center; justify-content:center;">
-                            <!-- Placeholder representation of the green/orange compliance donut chart -->
-                            <div style="position:relative; width:180px; height:180px; border-radius:50%; border: 15px solid var(--success); border-right-color: var(--warning); display:flex; align-items:center; justify-content:center; flex-direction:column;">
-                                <span style="font-size: 2rem; font-weight:700;">86,2%</span>
-                                <span style="font-size: 0.75rem; color:var(--text-secondary);">Cumplimiento</span>
+                            <!-- Dynamic Compliance Chart Container -->
+                            <div id="compliance-chart-container" style="position:relative; width:180px; height:180px; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+                                <canvas id="chartComplianceDonut"></canvas>
+                                <div class="donut-inner-text" style="position:absolute; display:flex; flex-direction:column; align-items:center;">
+                                    <span id="stat-compliance-pct" style="font-size: 2rem; font-weight:700;">--</span>
+                                    <span style="font-size: 0.75rem; color:var(--text-secondary);">Cumplimiento</span>
+                                </div>
                             </div>
                         </div>
                         <div style="display:flex; gap: 10px; margin-top:20px; font-size:0.75rem; justify-content:center;">
-                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--success); border-radius:2px;"></span> Cumple (200)</span>
-                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--warning); border-radius:2px;"></span> Observado (32)</span>
-                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--error); border-radius:2px;"></span> No cumple (14)</span>
+                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--success); border-radius:2px;"></span> Cumple (<span id="stat-count-apto">0</span>)</span>
+                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--warning); border-radius:2px;"></span> Obs. (<span id="stat-count-obs">0</span>)</span>
+                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--error); border-radius:2px;"></span> No cumple (<span id="stat-count-danger">0</span>)</span>
                         </div>
                     </div>
                     

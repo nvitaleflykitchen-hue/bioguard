@@ -37,8 +37,18 @@
     font-family: 'Roboto', sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6, .logo-text, .user-card-name {
+h1, h2, h3, h4, h5, h6, .logo-text, .user-card-name, .donut-inner-text span {
     font-family: 'Montserrat', sans-serif;
+}
+
+.role-hidden {
+    display: none !important;
+}
+.role-visible {
+    display: flex !important;
+}
+.role-admin-only {
+    display: none; /* Controlled by app.js */
 }
 
 body {

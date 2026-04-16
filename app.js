@@ -235,24 +235,35 @@ function applyRBAC() {
     if (navRegister) {
         if (currentRole === 'viewer') {
             navRegister.classList.add('role-hidden');
+            navRegister.classList.remove('role-visible');
         } else {
             navRegister.classList.remove('role-hidden');
+            navRegister.classList.add('role-visible');
         }
     }
     // Show Users nav only for admins
     const navUsers = document.getElementById('nav-users');
     if (navUsers) {
         if (currentRole === 'admin') {
-            navUsers.classList.add('visible');
+            navUsers.classList.add('role-visible');
+            navUsers.classList.remove('role-hidden');
+            navUsers.style.display = 'flex'; // Ensure it's showing
         } else {
-            navUsers.classList.remove('visible');
+            navUsers.classList.remove('role-visible');
+            navUsers.classList.add('role-hidden');
+            navUsers.style.display = 'none';
         }
     }
-    // Hide demo scenario selector for non-admins
-    const demoSelector = document.querySelector('.demo-selector');
-    if (demoSelector && currentRole === 'viewer') {
-        demoSelector.style.display = 'none';
-    }
+    
+    // Toggle Demo Sections based on mode
+    const demoSections = document.querySelectorAll('.scenario-intro, #active-scenario-tag');
+    demoSections.forEach(s => {
+        if (isDemoMode) {
+            s.classList.remove('hidden');
+        } else {
+            s.classList.add('hidden');
+        }
+    });
 }
 
 // =============================================
@@ -700,63 +711,98 @@ function setupForm() {
 function updateDashboard() {
     const results = getResults();
     
-    // Update Stats
-    document.getElementById('count-total').innerText = results.length;
-    document.getElementById('count-success').innerText = results.filter(r => r.state === 'success').length;
-    document.getElementById('count-error').innerText = results.filter(r => r.state === 'error').length;
+    // 1. Calculate Core Metrics
+    const total = results.length;
+    const aptoCount = results.filter(r => r.state === 'success').length;
+    const obsCount = results.filter(r => r.state === 'obs' || (r.state === 'success' && r.rawValue?.toLowerCase().includes('obs'))).length;
+    const dangerCount = results.filter(r => r.state === 'error').length;
+    const compliancePct = total > 0 ? ((aptoCount / total) * 100).toFixed(1) : 0;
 
-    // Update Table
+    // 2. Update KPI Cards (PCCLAB 2.0 Layout)
+    const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+    setEl('stat-total', total);
+    setEl('stat-apto', aptoCount);
+    setEl('stat-apto-pct', total > 0 ? Math.round((aptoCount/total)*100) + '%' : '0%');
+    setEl('stat-obs', obsCount);
+    setEl('stat-obs-pct', total > 0 ? Math.round((obsCount/total)*100) + '%' : '0%');
+    setEl('stat-danger', dangerCount);
+    setEl('stat-danger-pct', total > 0 ? Math.round((dangerCount/total)*100) + '%' : '0%');
+    
+    // Update Donut Stats
+    setEl('stat-compliance-pct', compliancePct + '%');
+    setEl('stat-count-apto', aptoCount);
+    setEl('stat-count-obs', obsCount);
+    setEl('stat-count-danger', dangerCount);
+
+    // 3. Update Compliance Donut Chart
+    renderComplianceDonut(aptoCount, obsCount, dangerCount);
+
+    // 4. Update Recent Results Table
     const tbody = document.getElementById('recent-results');
     if (tbody) {
         tbody.innerHTML = '';
-        results.slice(0, 5).forEach(res => {
-            const displayVal = res.rawValue ? res.rawValue : `${formatNumber(res.value)} <small>UFC</small>`;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${new Date(res.date).toLocaleDateString('es-ES')}</td>
-                <td><strong>${res.protocol}</strong></td>
-                <td>${res.sample}</td>
-                <td>${displayVal}</td>
-                <td title="Límite: ${res.threshold === 0 ? 'Ausencia' : (res.threshold ? '<= ' + res.threshold + ' ' + (res.unit || '') : 'Ver Matriz')}"><span class="badge badge-${res.state}">${res.state === 'success' ? 'Cumple' : 'Alerta'}</span></td>
-            `;
-            tbody.appendChild(tr);
-        });
+        if (results.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color:var(--text-secondary);">No hay registros aún.</td></tr>';
+        } else {
+            results.slice(0, 5).forEach(res => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(res.date).toLocaleDateString('es-ES')}</td>
+                    <td><strong>${res.protocol}</strong></td>
+                    <td>${formatType(res.type)}</td>
+                    <td>${res.sample}</td>
+                    <td>${res.rawValue || res.value}</td>
+                    <td><span class="status-pill status-${res.state}">${res.state==='success'?'APTO':(res.state==='obs'?'OBS':'NO APTO')}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     }
 
-        // Filter and Update Chart
-        const filterSelect = document.getElementById('microorganism-filter');
-        if (filterSelect) {
-            filterSelect.onchange = () => updateDashboard();
-            const selected = filterSelect.value;
-            
-            // LOGIC IMPROVEMENT: 
-            // If Global is selected, show COUNT OF DEVIATIONS (Errors) per day.
-            // If specific micro is selected, show MAX VALUE (UFC) found for that date.
-            let chartData = [];
-            
-            if (selected === 'total') {
-                // Group by date, sum errors
-                const grouped = results.reduce((acc, r) => {
-                    const d = r.date;
-                    if (!acc[d]) acc[d] = 0;
-                    if (r.state === 'error') acc[d]++;
-                    return acc;
-                }, {});
-                chartData = Object.keys(grouped).sort().map(d => ({ date: d, value: grouped[d], type: 'deviations' }));
-            } else {
-                const filtered = results.filter(r => r.organism === selected);
-                const grouped = filtered.reduce((acc, r) => {
-                    const d = r.date;
-                    if (!acc[d] || r.value > acc[d]) acc[d] = r.value;
-                    return acc;
-                }, {});
-                chartData = Object.keys(grouped).sort().map(d => ({ date: d, value: grouped[d], type: 'ufc' }));
-            }
-            
-            renderChart('trendChart', chartData.slice(-15));
-        } else {
-            renderChart('trendChart', results);
+    // 5. Update Evolution Chart
+    const chartContext = document.getElementById('trendChart');
+    if (chartContext) {
+        // Group results by date for the trend chart
+        const grouped = results.reduce((acc, r) => {
+            const d = r.date;
+            if (!acc[d]) acc[d] = { total: 0, errors: 0 };
+            acc[d].total++;
+            if (r.state === 'error') acc[d].errors++;
+            return acc;
+        }, {});
+        const chartData = Object.keys(grouped).sort().map(d => ({ 
+            date: d, 
+            value: grouped[d].total,
+            errors: grouped[d].errors
+        }));
+        renderChart('trendChart', chartData.slice(-10));
+    }
+}
+
+function renderComplianceDonut(apto, obs, danger) {
+    const ctx = document.getElementById('chartComplianceDonut');
+    if (!ctx) return;
+    
+    if (charts['complianceDonut']) charts['complianceDonut'].destroy();
+    
+    charts['complianceDonut'] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Apto', 'Observado', 'No Apto'],
+            datasets: [{
+                data: [apto, obs, danger],
+                backgroundColor: ['#38B2A3', '#FBC02D', '#E53935'],
+                borderWidth: 0,
+                cutout: '80%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            animation: { duration: 800 }
         }
+    });
 }
 
 function formatNumber(num) {
