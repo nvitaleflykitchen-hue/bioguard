@@ -56,7 +56,36 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     initAuth();  // Auth FIRST, then app
     initVault();
+    initMobileMenu();
 });
+
+function initMobileMenu() {
+    const toggle = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    if (toggle && sidebar) {
+        toggle.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-active');
+            const icon = toggle.querySelector('i');
+            if (icon) {
+                const isOpened = sidebar.classList.contains('mobile-active');
+                icon.setAttribute('data-lucide', isOpened ? 'x' : 'menu');
+                lucide.createIcons();
+            }
+        });
+        
+        // Close on nav click
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                sidebar.classList.remove('mobile-active');
+                const menuIcon = document.querySelector('#mobile-menu-toggle i');
+                if (menuIcon) {
+                    menuIcon.setAttribute('data-lucide', 'menu');
+                    lucide.createIcons();
+                }
+            });
+        });
+    }
+}
 
 // IndexedDB Vault for PDF evidence
 let db;
@@ -212,8 +241,8 @@ async function loadUserProfile(user) {
             const avatarEl = document.getElementById('user-avatar');
             if (nameEl) nameEl.textContent = data.full_name || user.email;
             if (estEl) {
-                estEl.textContent = currentRole.toUpperCase();
-                estEl.className = 'user-role-badge';
+                estEl.textContent = (currentRole === 'developer' ? 'DESARROLLADOR' : currentRole.toUpperCase());
+                estEl.className = 'user-role-badge' + (currentRole === 'developer' ? ' dev-role' : '');
             }
             if (avatarEl) {
                 const parts = (data.full_name || user.email).trim().split(' ');
@@ -230,6 +259,7 @@ async function loadUserProfile(user) {
 }
 
 function applyRBAC() {
+    console.log("Applying RBAC for role:", currentRole);
     // Hide 'Registrar' nav item for viewers
     const navRegister = document.getElementById('nav-register');
     if (navRegister) {
@@ -241,13 +271,13 @@ function applyRBAC() {
             navRegister.classList.add('role-visible');
         }
     }
-    // Show Users nav only for admins
+    // Show Users nav only for admins and developers
     const navUsers = document.getElementById('nav-users');
     if (navUsers) {
-        if (currentRole === 'admin') {
+        if (currentRole === 'admin' || currentRole === 'developer') {
             navUsers.classList.add('role-visible');
             navUsers.classList.remove('role-hidden');
-            navUsers.style.display = 'flex'; // Ensure it's showing
+            navUsers.style.display = 'flex';
         } else {
             navUsers.classList.remove('role-visible');
             navUsers.classList.add('role-hidden');
@@ -264,6 +294,10 @@ function applyRBAC() {
             s.classList.add('hidden');
         }
     });
+
+    // Developer Specifics
+    const devBadges = document.querySelectorAll('.dev-badge');
+    devBadges.forEach(b => b.style.display = (currentRole === 'developer' ? 'inline-block' : 'none'));
 }
 
 // =============================================

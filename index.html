@@ -110,7 +110,10 @@
                         <div class="user-info-text text-right">
                             <label>Responsable de Calidad</label>
                             <span class="user-role" id="user-name" style="font-weight:600; font-size:1rem; padding:0;">Conectando...</span>
-                            <small id="user-establishment" class="hidden">Conectando</small>
+                            <div id="user-role-container">
+                                <small id="user-establishment" class="hidden">Conectando</small>
+                                <span class="dev-badge">DEV</span>
+                            </div>
                             <button id="btn-logout" class="btn-logout" onclick="logoutSupabase()" title="Cerrar Sesión"><i data-lucide="log-out"></i> Salir</button>
                         </div>
                         <div class="avatar" id="user-avatar" style="background: var(--bg-card); border: 2px solid var(--success); color: var(--text-primary); font-size: 0.9rem;">?</div>
