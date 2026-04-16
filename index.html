@@ -82,33 +82,38 @@
         <main class="main-content">
             <header class="top-header">
                 <div class="header-left">
-                    <div class="establishment-info">
-                        <h2 id="display-establishment">PCCLAB Centro</h2>
-                        <span id="active-scenario-tag" class="hidden">MODO DEMO: <span id="scenario-name"></span></span>
+                    <div class="header-filter-group">
+                        <label>Planta / Unidad</label>
+                        <div class="establishment-info">
+                            <h2 id="display-establishment" class="hidden">PCCLAB</h2>
+                        </div>
                     </div>
-                </div>
-                <div class="header-right">
-                    <div class="demo-selector">
-                        <select id="demo-scenario" onchange="loadDemoScenario()">
-                            <option value="">Gestión de Datos / Demos</option>
-                            <option value="real">Restaurar: Mis Datos Reales</option>
-                            <option value="wipe" style="color: #f87171; font-weight: bold;">⛔ Poner BD en Cero</option>
-                            <optgroup label="Escenarios Didácticos">
-                                <option value="normal">Demo: Operación Normal (6 meses)</option>
-                                <option value="ecoli">Demo: Brote E. coli</option>
-                                <option value="superficie">Demo: Contaminación Superficies</option>
-                                <option value="aerobios">Demo: Degradación Prolongada</option>
-                                <option value="notebooklm">Caso E. coli (NotebookLM)</option>
-                            </optgroup>
+                    <div class="header-filter-group" style="margin-left: 20px;">
+                        <label>Período</label>
+                        <select class="period-dropdown" style="background:#0F172A; border: 1px solid #1E293B; color: #F8FAFC; border-radius:6px; padding:6px 12px; height: 38px;">
+                            <option>16/10/2025 - 16/04/2026</option>
                         </select>
                     </div>
+                    <span id="active-scenario-tag" class="hidden" style="margin-left:15px;">MODO DEMO: <span id="scenario-name"></span></span>
+                    
+                    <div class="demo-selector hidden" style="margin-left:15px;">
+                        <select id="demo-scenario" onchange="loadDemoScenario()">
+                            <option value="">Opciones de Administrador</option>
+                            <option value="real">Restaurar: Mis Datos Reales</option>
+                            <option value="wipe" style="color: #ef4444; font-weight: bold;">⛔ Poner BD en Cero</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="header-right">
                     <div class="user-profile">
-                        <div class="user-info-text">
-                            <span class="user-role" id="user-name">Iniciando...</span>
-                            <small id="user-establishment" class="user-role-badge">Conectando</small>
+                        <div class="user-info-text text-right">
+                            <label>Responsable de Calidad</label>
+                            <span class="user-role" id="user-name" style="font-weight:600; font-size:1rem; padding:0;">Conectando...</span>
+                            <small id="user-establishment" class="hidden">Conectando</small>
                             <button id="btn-logout" class="btn-logout" onclick="logoutSupabase()" title="Cerrar Sesión"><i data-lucide="log-out"></i> Salir</button>
                         </div>
-                        <div class="avatar" id="user-avatar">?</div>
+                        <div class="avatar" id="user-avatar" style="background: var(--bg-card); border: 2px solid var(--success); color: var(--text-primary); font-size: 0.9rem;">?</div>
                     </div>
                 </div>
             </header>
@@ -147,79 +152,198 @@
                 <!-- Pathogen Fact Sheet (Ficha Técnica) -->
                 <div id="pathogen-fact-sheet" class="glass pathogen-card hidden"></div>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon success">
-                            <i data-lucide="check-circle"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-label">Dentro de Rango</span>
-                            <span class="stat-value" id="count-success">0</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon error">
-                            <i data-lucide="alert-triangle"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-label">Fuera de Rango</span>
-                            <span class="stat-value" id="count-error">0</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon accent">
+                <!-- 5 Metrics Cards Grid -->
+                <div class="kpi-grid">
+                    <div class="kpi-card glass">
+                        <div class="kpi-icon-wrap" style="background: rgba(26,79,130,0.15); color: #60A5FA;">
                             <i data-lucide="clipboard-list"></i>
                         </div>
-                        <div class="stat-info">
-                            <span class="stat-label">Total Análisis</span>
-                            <span class="stat-value" id="count-total">0</span>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Total Análisis</span>
+                            <span class="kpi-val" id="stat-total">0</span>
+                            <span class="kpi-sub">En el período</span>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card glass">
+                        <div class="kpi-icon-wrap" style="background: var(--success-glow); color: var(--success);">
+                            <i data-lucide="check-circle-2"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Dentro de Rango</span>
+                            <span class="kpi-val" id="stat-apto">0</span>
+                            <span class="kpi-sub" id="stat-apto-pct">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card glass" style="border: 1px solid rgba(251,192,45,0.2);">
+                        <div class="kpi-icon-wrap" style="background: rgba(251,192,45,0.15); color: var(--warning);">
+                            <i data-lucide="alert-triangle"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Observados</span>
+                            <span class="kpi-val" id="stat-obs">0</span>
+                            <span class="kpi-sub" id="stat-obs-pct" style="color:var(--text-secondary);">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card glass" style="border: 1px solid rgba(229,57,53,0.3);">
+                        <div class="kpi-icon-wrap" style="background: var(--error-glow); color: var(--error);">
+                            <i data-lucide="x-circle"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Fuera de Rango</span>
+                            <span class="kpi-val" id="stat-danger">0</span>
+                            <span class="kpi-sub" id="stat-danger-pct" style="color:var(--text-secondary);">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card glass">
+                        <div class="kpi-icon-wrap" style="background: rgba(255,255,255,0.05); color: var(--text-secondary);">
+                            <i data-lucide="clock"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Pendientes</span>
+                            <span class="kpi-val">0</span>
+                            <span class="kpi-sub">Por cargar</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="charts-row">
-                    <div class="chart-container glass compact-chart">
+                <!-- Critical Alerts Banner -->
+                <div class="alerts-banner glass">
+                    <div class="alerts-banner-header">
+                        <i data-lucide="alert-triangle" style="color:var(--error);"></i>
+                        <h3 style="color:#F8FAFC; margin:0; font-size:0.95rem; font-family:'Montserrat',sans-serif;">Alertas Críticas</h3>
+                    </div>
+                    <div class="alerts-banner-content">
+                        <div class="alert-item">
+                            <strong style="color:var(--error); font-size: 0.95rem;">0 DESVÍOS CRÍTICOS</strong>
+                            <span style="font-size: 0.85rem;">Requieren acción inmediata</span>
+                        </div>
+                        <i data-lucide="chevron-right" style="color:var(--text-secondary); width: 16px; height: 16px;"></i>
+                        <div class="alert-item">
+                            <strong style="color:var(--warning); font-size: 0.95rem;">0 ANÁLISIS POR VENCER</strong>
+                            <span style="font-size: 0.85rem;">Próximos 7 días</span>
+                        </div>
+                        <i data-lucide="chevron-right" style="color:var(--text-secondary); width: 16px; height: 16px;"></i>
+                        <div class="alert-item">
+                            <strong style="color:var(--error); font-size: 0.95rem;">1 PATÓGENO DETECTADO</strong>
+                            <span style="font-size: 0.85rem;">Salmonella spp. en 25g</span>
+                        </div>
+                        <button class="btn btn-small" style="background: rgba(255,255,255,0.05); border:1px solid var(--border); color:#F8FAFC; margin-left: auto;">Ver todas las alertas</button>
+                    </div>
+                </div>
+
+                <!-- 4 Charts Grid -->
+                <div class="metrics-dashboard-grid">
+                    <div class="chart-card glass">
                         <div class="chart-header">
-                            <h3>Evolución Microbiológica (UFC)</h3>
-                            <div class="chart-actions">
-                                <select id="microorganism-filter">
-                                    <option value="total">Resumen Global</option>
-                                    <option value="aerobios">Aerobios Totales</option>
-                                    <option value="coliformes">Coliformes Totales</option>
-                                    <option value="ecoli">E. coli</option>
-                                    <option value="ecoli157">E. coli O157:H7</option>
-                                    <option value="salmonella">Salmonella spp.</option>
-                                    <option value="staphylococcus">Staph. aureus</option>
-                                    <option value="listeria">Listeria m.</option>
-                                    <option value="clostridium">Clostridium p.</option>
-                                </select>
-                            </div>
+                            <h3 style="font-size: 0.9rem;">Evolución de Carga Aerobia (UFC/g)</h3>
+                            <select class="header-inline-select"><option>Últimos 6 meses</option></select>
                         </div>
                         <div class="canvas-wrapper">
                             <canvas id="trendChart"></canvas>
                         </div>
                     </div>
+                    
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h3 style="font-size: 0.9rem;">Cumplimiento Global</h3>
+                            <select class="header-inline-select"><option>Últimos 6 meses</option></select>
+                        </div>
+                        <div class="canvas-wrapper" style="display:flex; align-items:center; justify-content:center;">
+                            <!-- Placeholder representation of the green/orange compliance donut chart -->
+                            <div style="position:relative; width:180px; height:180px; border-radius:50%; border: 15px solid var(--success); border-right-color: var(--warning); display:flex; align-items:center; justify-content:center; flex-direction:column;">
+                                <span style="font-size: 2rem; font-weight:700;">86,2%</span>
+                                <span style="font-size: 0.75rem; color:var(--text-secondary);">Cumplimiento</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap: 10px; margin-top:20px; font-size:0.75rem; justify-content:center;">
+                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--success); border-radius:2px;"></span> Cumple (200)</span>
+                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--warning); border-radius:2px;"></span> Observado (32)</span>
+                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--error); border-radius:2px;"></span> No cumple (14)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h3 style="font-size: 0.9rem;">Ranking de Áreas Críticas</h3>
+                            <select class="header-inline-select"><option>Últimos 6 meses</option></select>
+                        </div>
+                        <div class="canvas-wrapper">
+                            <canvas id="chartCompliance"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h3 style="font-size: 0.9rem;">Análisis por Matriz</h3>
+                            <select class="header-inline-select"><option>Últimos 6 meses</option></select>
+                        </div>
+                        <div class="canvas-wrapper">
+                            <canvas id="chartZoneAlerts" style="max-height: 220px;"></canvas>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="table-container glass">
-                    <div class="table-header">
-                        <h3>Últimos Registros</h3>
-                        <button class="btn btn-secondary" onclick="window.location.hash='#history'">Ver Todo</button>
+                <!-- Bottom Layout: Registros y Acciones -->
+                <div class="bottom-dashboard-grid">
+                    <!-- Table section -->
+                    <div class="table-section-dashboard glass">
+                        <div class="flex-header" style="margin-bottom: 12px; padding: 10px;">
+                            <h3 style="font-family:'Montserrat',sans-serif; font-size:1.1rem; color:#fff;">Últimos Registros</h3>
+                            <button class="btn btn-small" style="background:transparent; border:1px solid var(--border); color:var(--text-secondary);" onclick="window.location.hash='#history'">Ver todo</button>
+                        </div>
+                        <div class="table-container" style="max-height: 250px; overflow-y:auto; border-radius:8px;">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Protocolo</th>
+                                        <th>Matriz</th>
+                                        <th>Muestra</th>
+                                        <th>Resultado</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-results">
+                                    <tr><td colspan="6" style="text-align:center;">Cargando registros...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Protocolo</th>
-                                <th>Elemento / Hisopado</th>
-                                <th>Resultado</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-results">
-                            <!-- JS will populate -->
-                        </tbody>
-                    </table>
+
+                    <!-- Quick Actions section -->
+                    <div class="quick-actions-section glass">
+                        <h3 style="font-family:'Montserrat',sans-serif; font-size:1.1rem; color:#fff; margin-bottom: 15px; padding-left: 10px;">Acciones Rápidas</h3>
+                        <div class="quick-actions-grid">
+                            <button class="quick-action-btn" onclick="document.getElementById('nav-register').click()">
+                                <i data-lucide="flask-conical"></i>
+                                <span>Cargar Análisis</span>
+                            </button>
+                            <button class="quick-action-btn">
+                                <i data-lucide="file-text"></i>
+                                <span>Importar PDF</span>
+                            </button>
+                            <button class="quick-action-btn">
+                                <i data-lucide="test-tube"></i>
+                                <span>Registrar Muestra</span>
+                            </button>
+                            <button class="quick-action-btn">
+                                <i data-lucide="clipboard-check"></i>
+                                <span>Emitir Informe</span>
+                            </button>
+                            <button class="quick-action-btn">
+                                <i data-lucide="clipboard-list"></i>
+                                <span>Plan de Acción</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="document.getElementById('nav-history').click()">
+                                <i data-lucide="history"></i>
+                                <span>Ver Historial</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </section>
 
