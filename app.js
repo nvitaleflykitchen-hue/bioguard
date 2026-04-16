@@ -166,26 +166,31 @@ function initAuth() {
             btn.disabled = true;
             btnText.textContent = 'Verificando...';
 
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            try {
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-            if (error) {
-                console.error("Login Auth Error:", error);
-                
-                let errorMsg = 'Credenciales incorrectas.';
-                if (error.message.includes('Email not confirmed')) {
-                    errorMsg = 'Debés confirmar tu correo electrónico primero. Revisá tu bandeja de entrada.';
-                } else if (error.message.includes('Invalid login credentials')) {
-                    errorMsg = 'Correo o contraseña equivocados. Verificá y volvé a intentar.';
-                } else {
-                    errorMsg = 'Error: ' + error.message;
+                if (error) {
+                    console.error("Login Auth Error:", error);
+                    let errorMsg = 'Credenciales incorrectas.';
+                    if (error.message.toLowerCase().includes('email not confirmed')) {
+                        errorMsg = 'Debés confirmar tu correo electrónico. Revisá tu mail (SPAM).';
+                    } else if (error.message.toLowerCase().includes('invalid login credentials')) {
+                        errorMsg = 'Correo o contraseña incorrectos. Verificá los datos.';
+                    } else {
+                        errorMsg = 'Error: ' + error.message;
+                    }
+                    errEl.textContent = errorMsg;
+                    errEl.classList.remove('hidden');
+                    btn.disabled = false;
+                    btnText.textContent = 'Ingresar Segurizado';
                 }
-                
-                errEl.textContent = errorMsg;
+            } catch (err) {
+                console.error("Login Exception:", err);
+                errEl.textContent = "Error de conexión con el servidor.";
                 errEl.classList.remove('hidden');
                 btn.disabled = false;
                 btnText.textContent = 'Ingresar Segurizado';
             }
-            // On success, onAuthStateChange fires automatically
         });
     }
 }
