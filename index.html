@@ -23,28 +23,71 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-mode">
-    <!-- Login Overlay -->
-    <div id="login-overlay" class="login-overlay">
-        <div class="login-card glass">
-            <div class="login-header">
-                <img src="LOGO PCCLAB.png" alt="PCCLAB Logo" class="login-logo-img">
-                <p style="margin-top: 5px;">Sistema Operativo Bromatológico</p>
+    <!-- Login Overlay Premium -->
+    <div id="login-overlay" class="login-overlay-premium">
+        <!-- Animated Bioluminescent Background -->
+        <div class="bio-bg-container">
+            <div class="bio-sphere sphere-1"></div>
+            <div class="bio-sphere sphere-2"></div>
+            <div class="bio-sphere sphere-3"></div>
+            <div class="bio-grid"></div>
+        </div>
+
+        <div class="login-split-container">
+            <!-- Left Branding Side -->
+            <div class="login-branding-side">
+                <div class="brand-content">
+                    <img src="LOGO PCCLAB.png" alt="PCCLAB Logo" class="brand-logo-large">
+                    <h1 class="brand-title">PCCLAB <span>Security</span></h1>
+                    <p class="brand-subtitle">Inteligencia Bromatológica ISO 9001</p>
+                    
+                    <div class="brand-features">
+                        <div class="feature-item">
+                            <i data-lucide="shield-check"></i>
+                            <span>Trazabilidad Blockchain</span>
+                        </div>
+                        <div class="feature-item">
+                            <i data-lucide="activity"></i>
+                            <span>Monitoreo Predictivo IA</span>
+                        </div>
+                        <div class="feature-item">
+                            <i data-lucide="database"></i>
+                            <span>Arquitectura Multitenant</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <form id="login-form">
-                <div class="form-group form-group-login">
-                    <label for="login-email">Correo Electrónico</label>
-                    <input type="email" id="login-email" required placeholder="tu@correo.com">
+
+            <!-- Right Form Side -->
+            <div class="login-form-side">
+                <div class="login-card-premium glass">
+                    <div class="login-header-mobile">
+                        <img src="LOGO PCCLAB.png" alt="PCCLAB Logo" class="login-logo-mobile">
+                    </div>
+                    <h2>Ingreso Segurizado</h2>
+                    <p class="login-desc">Acceda al ecosistema central de calidad.</p>
+                    
+                    <form id="login-form" class="premium-form">
+                        <div class="form-group floating-group">
+                            <input type="email" id="login-email" class="floating-input" required placeholder=" ">
+                            <label for="login-email" class="floating-label"><i data-lucide="mail"></i> Correo Electrónico</label>
+                        </div>
+                        <div class="form-group floating-group">
+                            <input type="password" id="login-password" class="floating-input" required placeholder=" ">
+                            <label for="login-password" class="floating-label"><i data-lucide="key"></i> Contraseña de Acceso</label>
+                        </div>
+                        <div id="login-error" class="login-error hidden">Credenciales incorrectas.</div>
+                        <button type="submit" class="btn btn-primary btn-premium-login">
+                            <span id="login-btn-text">Autenticar Perfil</span>
+                            <i data-lucide="arrow-right" id="login-btn-icon"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="login-footer">
+                        <p>Powered by <strong>Octopus Standard</strong></p>
+                    </div>
                 </div>
-                <div class="form-group form-group-login">
-                    <label for="login-password">Contraseña</label>
-                    <input type="password" id="login-password" required placeholder="••••••••">
-                </div>
-                <div id="login-error" class="login-error hidden">Credenciales incorrectas.</div>
-                <button type="submit" class="btn btn-primary login-btn">
-                    <span id="login-btn-text">Ingresar Segurizado</span>
-                    <i data-lucide="lock" id="login-btn-icon"></i>
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 
