@@ -69,6 +69,10 @@
                     <i data-lucide="history"></i>
                     <span>Historial</span>
                 </a>
+                <a href="#users" class="nav-item role-admin-only" id="nav-users" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px;">
+                    <i data-lucide="users"></i>
+                    <span>Usuarios</span>
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <p class="iso-badge">ISO 9001:2015</p>
@@ -452,7 +456,62 @@
                     </form>
                 </div>
             </section>
+
+            <!-- Users Management View (Admin Only) -->
+            <section id="view-users" class="view">
+                <div class="view-header flex-header">
+                    <div>
+                        <h2>Gestión de Usuarios</h2>
+                        <p>Agregá y administrá el acceso al sistema PCCLAB.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openInviteModal()">
+                        <i data-lucide="user-plus"></i> Invitar Usuario
+                    </button>
+                </div>
+
+                <!-- User cards grid -->
+                <div id="users-grid" class="users-grid">
+                    <div class="users-loading"><i data-lucide="loader"></i> Cargando usuarios...</div>
+                </div>
+            </section>
         </main>
+    </div>
+
+    <!-- Invite User Modal -->
+    <div id="invite-modal" class="modal-overlay hidden">
+        <div class="modal-card glass">
+            <div class="modal-header">
+                <h3><i data-lucide="user-plus"></i> Nuevo Usuario</h3>
+                <button class="btn-icon" onclick="closeInviteModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">Los nuevos usuarios reciben una invitación por correo para configurar su contraseña.</p>
+                <div class="form-group form-group-login" style="margin-bottom: 1rem;">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="invite-name" placeholder="Ej: María García">
+                </div>
+                <div class="form-group form-group-login" style="margin-bottom: 1rem;">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="invite-email" placeholder="usuario@pcclab.com">
+                </div>
+                <div class="form-group form-group-login" style="margin-bottom: 0;">
+                    <label>Perfil de Acceso</label>
+                    <select id="invite-role" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; padding: 0.75rem 1rem;">
+                        <option value="auditor">Auditor — Ve y registra análisis</option>
+                        <option value="viewer">Lector — Solo visualiza datos</option>
+                        <option value="admin">Administrador — Acceso total</option>
+                    </select>
+                </div>
+                <div id="invite-error" class="login-error hidden" style="margin-top: 1rem;"></div>
+                <div id="invite-success" class="invite-success hidden" style="margin-top: 1rem;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeInviteModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="inviteUser()" id="invite-btn">
+                    <i data-lucide="send"></i> Enviar Invitación
+                </button>
+            </div>
+        </div>
     </div>
     <script src="app.js"></script>
 </body>

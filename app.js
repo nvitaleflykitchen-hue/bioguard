@@ -223,12 +223,159 @@ function applyRBAC() {
             navRegister.classList.remove('role-hidden');
         }
     }
+    // Show Users nav only for admins
+    const navUsers = document.getElementById('nav-users');
+    if (navUsers) {
+        if (currentRole === 'admin') {
+            navUsers.classList.add('visible');
+        } else {
+            navUsers.classList.remove('visible');
+        }
+    }
     // Hide demo scenario selector for non-admins
     const demoSelector = document.querySelector('.demo-selector');
     if (demoSelector && currentRole === 'viewer') {
         demoSelector.style.display = 'none';
     }
 }
+
+// =============================================
+// USER MANAGEMENT (Admin Only)
+// =============================================
+async function loadUsersView() {
+    if (currentRole !== 'admin' || !supabaseClient) return;
+    const grid = document.getElementById('users-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div class="users-loading"><span>Cargando usuarios...</span></div>';
+
+    const { data, error } = await supabaseClient
+        .from('user_profiles')
+        .select('id, full_name, role, establishment, created_at');
+
+    if (error || !data) {
+        grid.innerHTML = '<div class="users-loading">Error cargando usuarios.</div>';
+        return;
+    }
+
+    if (data.length === 0) {
+        grid.innerHTML = '<div class="users-loading">No hay usuarios registrados aún.</div>';
+        return;
+    }
+
+    const roleLabels = { admin: 'Administrador', auditor: 'Auditor', viewer: 'Lector' };
+    grid.innerHTML = data.map(u => {
+        const parts = (u.full_name || '?').trim().split(' ');
+        let initials = parts[0].charAt(0).toUpperCase();
+        if (parts[1]) initials += parts[1].charAt(0).toUpperCase();
+        const isCurrentUser = currentUser && u.id === currentUser.id;
+        return `
+        <div class="user-card">
+            <div class="user-card-header">
+                <div class="user-card-avatar">${initials}</div>
+                <div class="user-card-info">
+                    <div class="user-card-name">${u.full_name} ${isCurrentUser ? '<span style="font-size:0.7rem;color:var(--accent)">(vos)</span>' : ''}</div>
+                    <div class="user-card-email">${u.establishment || 'PCCLAB'}</div>
+                </div>
+            </div>
+            <div class="user-card-actions">
+                <select class="role-select-inline" onchange="updateUserRole('${u.id}', this.value)" ${isCurrentUser ? 'disabled title="No podés cambiar tu propio rol"' : ''}>
+                    <option value="admin" ${u.role==='admin'?'selected':''}>👑 Administrador</option>
+                    <option value="auditor" ${u.role==='auditor'?'selected':''}>🔬 Auditor</option>
+                    <option value="viewer" ${u.role==='viewer'?'selected':''}>👁 Lector</option>
+                </select>
+                ${!isCurrentUser ? `<button class="btn btn-small" style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2);" onclick="deleteUserProfile('${u.id}', '${u.full_name}')">Quitar acceso</button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+window.updateUserRole = async function(userId, newRole) {
+    if (!supabaseClient) return;
+    const { error } = await supabaseClient
+        .from('user_profiles')
+        .update({ role: newRole })
+        .eq('id', userId);
+    if (error) alert('Error al actualizar el rol: ' + error.message);
+};
+
+window.deleteUserProfile = async function(userId, name) {
+    if (!confirm(`¿Quitarle el acceso a ${name}? Esto solo elimina su perfil en PCCLAB, no su cuenta de correo.`)) return;
+    const { error } = await supabaseClient
+        .from('user_profiles')
+        .delete()
+        .eq('id', userId);
+    if (error) { alert('Error: ' + error.message); return; }
+    loadUsersView();
+};
+
+window.openInviteModal = function() {
+    document.getElementById('invite-modal').classList.remove('hidden');
+    document.getElementById('invite-name').value = '';
+    document.getElementById('invite-email').value = '';
+    document.getElementById('invite-error').classList.add('hidden');
+    document.getElementById('invite-success').classList.add('hidden');
+    lucide.createIcons();
+};
+
+window.closeInviteModal = function() {
+    document.getElementById('invite-modal').classList.add('hidden');
+};
+
+window.inviteUser = async function() {
+    const name = document.getElementById('invite-name').value.trim();
+    const email = document.getElementById('invite-email').value.trim();
+    const role = document.getElementById('invite-role').value;
+    const errEl = document.getElementById('invite-error');
+    const successEl = document.getElementById('invite-success');
+    const btn = document.getElementById('invite-btn');
+
+    errEl.classList.add('hidden');
+    successEl.classList.add('hidden');
+
+    if (!name || !email) {
+        errEl.textContent = 'Completá el nombre y el correo.';
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>Enviando...</span>';
+
+    // Use Supabase Admin invite (requires service_role key on backend - fallback: create user with temp pass)
+    // For now, create with random temp password and show it to admin
+    const tempPass = Math.random().toString(36).slice(-10) + 'Aa1!';
+    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+        email: email,
+        password: tempPass,
+        options: { data: { full_name: name } }
+    });
+
+    if (authError) {
+        errEl.textContent = 'Error: ' + authError.message;
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="send"></i> Enviar Invitación';
+        lucide.createIcons();
+        return;
+    }
+
+    if (authData.user) {
+        await supabaseClient.from('user_profiles').insert({
+            id: authData.user.id,
+            full_name: name,
+            role: role,
+            establishment: 'PCCLAB Centro'
+        });
+    }
+
+    successEl.innerHTML = `✅ Usuario creado.<br><strong>Contraseña temporal:</strong> <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;">${tempPass}</code><br><small>Compartila con ${name} para que pueda ingresar.</small>`;
+    successEl.classList.remove('hidden');
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="send"></i> Enviar Invitación';
+    lucide.createIcons();
+    setTimeout(() => loadUsersView(), 1000);
+};
 
 window.logoutSupabase = async function() {
     if (!supabaseClient) return;
@@ -273,6 +420,7 @@ function handleRoute(hash) {
     if (hash === '#dashboard') updateDashboard();
     if (hash === '#trends') updateTrends();
     if (hash === '#history') updateHistory();
+    if (hash === '#users') loadUsersView();
     
     lucide.createIcons();
 }
