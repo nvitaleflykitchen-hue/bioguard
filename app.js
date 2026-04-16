@@ -56,36 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     initAuth();  // Auth FIRST, then app
     initVault();
-    initMobileMenu();
+    registerSW();
 });
 
-function initMobileMenu() {
-    const toggle = document.getElementById('mobile-menu-toggle');
-    const sidebar = document.querySelector('.sidebar');
-    if (toggle && sidebar) {
-        toggle.addEventListener('click', () => {
-            sidebar.classList.toggle('mobile-active');
-            const icon = toggle.querySelector('i');
-            if (icon) {
-                const isOpened = sidebar.classList.contains('mobile-active');
-                icon.setAttribute('data-lucide', isOpened ? 'x' : 'menu');
-                lucide.createIcons();
-            }
-        });
-        
-        // Close on nav click
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                sidebar.classList.remove('mobile-active');
-                const menuIcon = document.querySelector('#mobile-menu-toggle i');
-                if (menuIcon) {
-                    menuIcon.setAttribute('data-lucide', 'menu');
-                    lucide.createIcons();
-                }
-            });
-        });
+function registerSW() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log('PWA Service Worker Registered'))
+            .catch(err => console.error('SW Match Error:', err));
     }
 }
+
+
 
 // IndexedDB Vault for PDF evidence
 let db;
@@ -472,9 +454,15 @@ function handleRoute(hash) {
     const targetView = document.getElementById(viewId);
     if (targetView) targetView.classList.add('active');
 
-    // Update Nav Menu
+    // Update Nav Menu (Desktop)
     navItems.forEach(ni => {
         ni.classList.toggle('active', ni.getAttribute('href') === hash);
+    });
+
+    // Update Bottom Nav (Mobile)
+    const mobileItems = document.querySelectorAll('.mobile-nav-item');
+    mobileItems.forEach(mi => {
+        mi.classList.toggle('active', mi.getAttribute('href') === hash);
     });
 
     // Update Content

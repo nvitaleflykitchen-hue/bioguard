@@ -2,8 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCCLAB | Microbiological Analytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PCCLAB Security</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
@@ -603,6 +607,26 @@
                 </div>
             </section>
         </main>
+
+        <!-- Mobile Bottom Navigation (Visible only on mobile) -->
+        <nav class="mobile-bottom-nav">
+            <a href="#dashboard" class="mobile-nav-item active">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Panel</span>
+            </a>
+            <a href="#register" class="mobile-nav-item">
+                <i data-lucide="plus-circle"></i>
+                <span>Cargar</span>
+            </a>
+            <a href="#history" class="mobile-nav-item">
+                <i data-lucide="history"></i>
+                <span>Historial</span>
+            </a>
+            <a href="#users" class="mobile-nav-item role-admin-only">
+                <i data-lucide="users"></i>
+                <span>Usuarios</span>
+            </a>
+        </nav>
     </div>
 
     <!-- Invite User Modal -->
