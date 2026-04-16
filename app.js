@@ -146,17 +146,32 @@ function initAuth() {
 
     // Listen for auth state changes
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        console.log("Auth State Changed:", event);
         if (session && session.user) {
             currentUser = session.user;
-            await loadUserProfile(currentUser);
+            
+            // Unlock UI immediately with basic state
             overlay.classList.remove('active');
             appContainer.style.display = 'flex';
             initApp();
             initVault();
-            applyRBAC();
+            
+            // Load extended profile in the background
+            try {
+                // 2-second timeout for profile load
+                await Promise.race([
+                    loadUserProfile(currentUser),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Profile Timeout')), 2000))
+                ]);
+            } catch (e) {
+                console.warn("Using default profile due to:", e.message);
+                currentRole = 'user'; // Fallback
+            } finally {
+                applyRBAC();
+            }
         } else {
             currentUser = null;
-            currentRole = 'viewer';
+            currentRole = 'user';
             overlay.classList.add('active');
             appContainer.style.display = 'none';
         }
@@ -207,23 +222,33 @@ function initAuth() {
 }
 
 async function loadUserProfile(user) {
-    // Try to get profile from user_profiles table
     if (!supabaseClient) return;
     try {
         const { data } = await supabaseClient
-            .from('user_profiles')
-            .select('full_name, role, establishment')
+            .from('usuarios')
+            .select('full_name, role, establishment, business_name, plan, permissions')
             .eq('id', user.id)
             .single();
 
         if (data) {
-            currentRole = data.role || 'viewer';
+            currentRole = data.role || 'user';
             const nameEl = document.getElementById('user-name');
             const estEl = document.getElementById('user-establishment');
+            const bizEl = document.getElementById('user-business');
+            const planEl = document.getElementById('user-plan-badge');
             const avatarEl = document.getElementById('user-avatar');
+
             if (nameEl) nameEl.textContent = data.full_name || user.email;
+            if (bizEl) bizEl.textContent = data.business_name || 'Personal / PCCLAB';
+            if (planEl) {
+                planEl.textContent = (data.plan || 'FREE').toUpperCase();
+                planEl.className = 'plan-badge ' + (data.plan === 'PRO' ? 'pro' : 'free');
+            }
             if (estEl) {
-                estEl.textContent = (currentRole === 'developer' ? 'DESARROLLADOR' : currentRole.toUpperCase());
+                let roleLabel = currentRole.toUpperCase();
+                if (currentRole === 'developer') roleLabel = 'DESARROLLADOR';
+                if (currentRole === 'consultant') roleLabel = 'CONSULTOR EXPERTO';
+                estEl.textContent = roleLabel;
                 estEl.className = 'user-role-badge' + (currentRole === 'developer' ? ' dev-role' : '');
             }
             if (avatarEl) {
@@ -233,7 +258,7 @@ async function loadUserProfile(user) {
                 avatarEl.textContent = initials;
             }
         } else {
-            currentRole = 'viewer';
+            currentRole = 'user';
             const nameEl = document.getElementById('user-name');
             if (nameEl) nameEl.textContent = user.email;
         }
@@ -241,11 +266,15 @@ async function loadUserProfile(user) {
 }
 
 function applyRBAC() {
-    console.log("Applying RBAC for role:", currentRole);
-    // Hide 'Registrar' nav item for viewers
+    console.log("Applying Octopus RBAC for role:", currentRole);
+    // Hierarchy: developer > admin = consultant > manager > auditor > client = viewer = user
+    const isAdminMode = ['developer', 'admin', 'consultant'].includes(currentRole);
+    const isRegistryMode = isAdminMode || ['manager', 'auditor'].includes(currentRole);
+
+    // Hide 'Registrar' nav item for restricted users
     const navRegister = document.getElementById('nav-register');
     if (navRegister) {
-        if (currentRole === 'viewer') {
+        if (!isRegistryMode) {
             navRegister.classList.add('role-hidden');
             navRegister.classList.remove('role-visible');
         } else {
@@ -253,10 +282,10 @@ function applyRBAC() {
             navRegister.classList.add('role-visible');
         }
     }
-    // Show Users nav only for admins and developers
+    // Show Users nav only for admins, consultants and developers
     const navUsers = document.getElementById('nav-users');
     if (navUsers) {
-        if (currentRole === 'admin' || currentRole === 'developer') {
+        if (isAdminMode) {
             navUsers.classList.add('role-visible');
             navUsers.classList.remove('role-hidden');
             navUsers.style.display = 'flex';
@@ -286,47 +315,48 @@ function applyRBAC() {
 // USER MANAGEMENT (Admin Only)
 // =============================================
 async function loadUsersView() {
-    if (currentRole !== 'admin' || !supabaseClient) return;
+    const isAdminMode = ['developer', 'admin', 'consultant'].includes(currentRole);
+    if (!isAdminMode || !supabaseClient) return;
     const grid = document.getElementById('users-grid');
     if (!grid) return;
     grid.innerHTML = '<div class="users-loading"><span>Cargando usuarios...</span></div>';
 
     const { data, error } = await supabaseClient
-        .from('user_profiles')
-        .select('id, full_name, role, establishment, created_at');
+        .from('usuarios')
+        .select('*');
 
     if (error || !data) {
         grid.innerHTML = '<div class="users-loading">Error cargando usuarios.</div>';
         return;
     }
 
-    if (data.length === 0) {
-        grid.innerHTML = '<div class="users-loading">No hay usuarios registrados aún.</div>';
-        return;
-    }
-
-    const roleLabels = { admin: 'Administrador', auditor: 'Auditor', viewer: 'Lector' };
     grid.innerHTML = data.map(u => {
         const parts = (u.full_name || '?').trim().split(' ');
         let initials = parts[0].charAt(0).toUpperCase();
         if (parts[1]) initials += parts[1].charAt(0).toUpperCase();
         const isCurrentUser = currentUser && u.id === currentUser.id;
+        const planClass = u.plan === 'PRO' ? 'pro-user' : 'free-user';
+        
         return `
-        <div class="user-card">
+        <div class="user-card ${planClass}">
             <div class="user-card-header">
                 <div class="user-card-avatar">${initials}</div>
                 <div class="user-card-info">
                     <div class="user-card-name">${u.full_name} ${isCurrentUser ? '<span style="font-size:0.7rem;color:var(--accent)">(vos)</span>' : ''}</div>
-                    <div class="user-card-email">${u.establishment || 'PCCLAB'}</div>
+                    <div class="user-card-email">${u.business_name || 'Sin Empresa'} | ${u.plan || 'FREE'}</div>
                 </div>
             </div>
             <div class="user-card-actions">
-                <select class="role-select-inline" onchange="updateUserRole('${u.id}', this.value)" ${isCurrentUser ? 'disabled title="No podés cambiar tu propio rol"' : ''}>
-                    <option value="admin" ${u.role==='admin'?'selected':''}>👑 Administrador</option>
-                    <option value="auditor" ${u.role==='auditor'?'selected':''}>🔬 Auditor</option>
-                    <option value="viewer" ${u.role==='viewer'?'selected':''}>👁 Lector</option>
+                <select class="role-select-inline" onchange="updateUserRole('${u.id}', this.value)" ${isCurrentUser ? 'disabled' : ''}>
+                    <option value="user" ${u.role==='user'?'selected':''}>User</option>
+                    <option value="client" ${u.role==='client'?'selected':''}>Client</option>
+                    <option value="manager" ${u.role==='manager'?'selected':''}>Manager</option>
+                    <option value="auditor" ${u.role==='auditor'?'selected':''}>Auditor</option>
+                    <option value="consultant" ${u.role==='consultant'?'selected':''}>Consultant</option>
+                    <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                    <option value="developer" ${u.role==='developer'?'selected':''}>Developer</option>
                 </select>
-                ${!isCurrentUser ? `<button class="btn btn-small" style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2);" onclick="deleteUserProfile('${u.id}', '${u.full_name}')">Quitar acceso</button>` : ''}
+                ${!isCurrentUser ? `<button class="btn btn-small btn-delete-user" onclick="deleteUserProfile('${u.id}', '${u.full_name}')">Quitar</button>` : ''}
             </div>
         </div>`;
     }).join('');
@@ -336,16 +366,16 @@ async function loadUsersView() {
 window.updateUserRole = async function(userId, newRole) {
     if (!supabaseClient) return;
     const { error } = await supabaseClient
-        .from('user_profiles')
+        .from('usuarios')
         .update({ role: newRole })
         .eq('id', userId);
-    if (error) alert('Error al actualizar el rol: ' + error.message);
+    if (error) alert('Error: ' + error.message);
 };
 
 window.deleteUserProfile = async function(userId, name) {
-    if (!confirm(`¿Quitarle el acceso a ${name}? Esto solo elimina su perfil en PCCLAB, no su cuenta de correo.`)) return;
+    if (!confirm(`¿Quitarle el acceso a ${name}?`)) return;
     const { error } = await supabaseClient
-        .from('user_profiles')
+        .from('usuarios')
         .delete()
         .eq('id', userId);
     if (error) { alert('Error: ' + error.message); return; }
@@ -368,7 +398,11 @@ window.closeInviteModal = function() {
 window.inviteUser = async function() {
     const name = document.getElementById('invite-name').value.trim();
     const email = document.getElementById('invite-email').value.trim();
+    const business = document.getElementById('invite-business').value.trim();
     const role = document.getElementById('invite-role').value;
+    const plan = document.getElementById('invite-plan').value;
+    const establishment = document.getElementById('invite-establishment').value.trim();
+    
     const errEl = document.getElementById('invite-error');
     const successEl = document.getElementById('invite-success');
     const btn = document.getElementById('invite-btn');
@@ -377,16 +411,14 @@ window.inviteUser = async function() {
     successEl.classList.add('hidden');
 
     if (!name || !email) {
-        errEl.textContent = 'Completá el nombre y el correo.';
+        errEl.textContent = 'Completá nombre y correo.';
         errEl.classList.remove('hidden');
         return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = '<span>Enviando...</span>';
+    btn.innerHTML = '<span>Procesando...</span>';
 
-    // Use Supabase Admin invite (requires service_role key on backend - fallback: create user with temp pass)
-    // For now, create with random temp password and show it to admin
     const tempPass = Math.random().toString(36).slice(-10) + 'Aa1!';
     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
         email: email,
@@ -398,26 +430,29 @@ window.inviteUser = async function() {
         errEl.textContent = 'Error: ' + authError.message;
         errEl.classList.remove('hidden');
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="send"></i> Enviar Invitación';
+        btn.innerHTML = '<i data-lucide="send"></i> Enviar Invitación Segura';
         lucide.createIcons();
         return;
     }
 
     if (authData.user) {
-        await supabaseClient.from('user_profiles').insert({
+        await supabaseClient.from('usuarios').insert({
             id: authData.user.id,
             full_name: name,
             role: role,
-            establishment: 'PCCLAB Centro'
+            business_name: business || 'Empresa Independiente',
+            plan: plan,
+            establishment: establishment || 'Planta Principal',
+            permissions: role === 'consultant' || role === 'admin' ? ['all'] : []
         });
     }
 
-    successEl.innerHTML = `✅ Usuario creado.<br><strong>Contraseña temporal:</strong> <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;">${tempPass}</code><br><small>Compartila con ${name} para que pueda ingresar.</small>`;
+    successEl.innerHTML = `✅ Invitación enviada.<br><strong>Pass temporal:</strong> <code>${tempPass}</code>`;
     successEl.classList.remove('hidden');
     btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="send"></i> Enviar Invitación';
+    btn.innerHTML = '<i data-lucide="send"></i> Enviar Invitación Segura';
     lucide.createIcons();
-    setTimeout(() => loadUsersView(), 1000);
+    setTimeout(() => loadUsersView(), 1500);
 };
 
 window.logoutSupabase = async function() {
@@ -438,9 +473,10 @@ function initApp() {
 
     const dateElem = document.getElementById('current-date');
     if (dateElem) {
-        dateElem.innerText = new Date().toLocaleDateString('es-ES', { 
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-        });
+        // FIXED: Using explicit day/month/year to avoid localization shifts
+        const now = new Date();
+        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        dateElem.innerText = now.toLocaleDateString('es-AR', options);
     }
     loadFromSupabase();
 }

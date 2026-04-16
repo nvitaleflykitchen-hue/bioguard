@@ -169,6 +169,51 @@ body {
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
 }
 
+.plan-badge {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818CF8;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.plan-badge.pro {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25));
+    color: #A855F7;
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+.plan-badge.free {
+    background: rgba(148, 163, 184, 0.1);
+    color: #94A3B8;
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+.pro-user {
+    border-left: 3px solid #A855F7 !important;
+}
+
+.btn-delete-user {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+}
+.btn-delete-user:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+}
+
+
+.user-role-badge {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+}
+
+
 .login-btn {
     width: 100%;
     padding: 1rem;

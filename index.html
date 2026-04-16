@@ -112,10 +112,11 @@
                 <div class="header-right">
                     <div class="user-profile">
                         <div class="user-info-text text-right">
-                            <label>Responsable de Calidad</label>
+                            <label id="user-business">Cargando Empresa...</label>
                             <span class="user-role" id="user-name" style="font-weight:600; font-size:1rem; padding:0;">Conectando...</span>
-                            <div id="user-role-container">
-                                <small id="user-establishment" class="hidden">Conectando</small>
+                            <div id="user-role-container" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; margin-top: 4px;">
+                                <small id="user-establishment" class="user-role-badge">Conectando</small>
+                                <span id="user-plan-badge" class="plan-badge">FREE</span>
                                 <span class="dev-badge">DEV</span>
                             </div>
                             <button id="btn-logout" class="btn-logout" onclick="logoutSupabase()" title="Cerrar Sesión"><i data-lucide="log-out"></i> Salir</button>
@@ -646,13 +647,33 @@
                     <label>Correo Electrónico</label>
                     <input type="email" id="invite-email" placeholder="usuario@pcclab.com">
                 </div>
-                <div class="form-group form-group-login" style="margin-bottom: 0;">
-                    <label>Perfil de Acceso</label>
-                    <select id="invite-role" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; padding: 0.75rem 1rem;">
-                        <option value="auditor">Auditor — Ve y registra análisis</option>
-                        <option value="viewer">Lector — Solo visualiza datos</option>
-                        <option value="admin">Administrador — Acceso total</option>
-                    </select>
+                <div class="form-group form-group-login" style="margin-bottom: 1rem;">
+                    <label>Empresa / Business Name</label>
+                    <input type="text" id="invite-business" placeholder="Ej: Octo Corp">
+                </div>
+                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group form-group-login">
+                        <label>Rol Octopus</label>
+                        <select id="invite-role" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; padding: 0.75rem 1rem;">
+                            <option value="user">User (Básico)</option>
+                            <option value="client">Client (Solo lectura)</option>
+                            <option value="manager">Manager (Supervisor)</option>
+                            <option value="auditor">Auditor (Calidad)</option>
+                            <option value="consultant">Consultant (Experto)</option>
+                            <option value="admin">Admin (Total)</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-login">
+                        <label>Plan de Suscripción</label>
+                        <select id="invite-plan" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; padding: 0.75rem 1rem;">
+                            <option value="FREE">FREE</option>
+                            <option value="PRO">PRO</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group form-group-login" style="margin-bottom: 1rem;">
+                    <label>Planta / Establecimiento</label>
+                    <input type="text" id="invite-establishment" placeholder="Ej: Planta FlyKitchen">
                 </div>
                 <div id="invite-error" class="login-error hidden" style="margin-top: 1rem;"></div>
                 <div id="invite-success" class="invite-success hidden" style="margin-top: 1rem;"></div>
@@ -660,7 +681,7 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeInviteModal()">Cancelar</button>
                 <button class="btn btn-primary" onclick="inviteUser()" id="invite-btn">
-                    <i data-lucide="send"></i> Enviar Invitación
+                    <i data-lucide="send"></i> Enviar Invitación Segura
                 </button>
             </div>
         </div>
