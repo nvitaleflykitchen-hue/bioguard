@@ -1,3 +1,47 @@
+const SUPABASE_URL = 'https://oaelabufwmgfkbikkfov.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_wfqsVrEaX3lb2CNM4NGcLw_AKh1weXu';
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+let syncTimer = null;
+function requestSyncToSupabase() {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => {
+        syncToSupabase();
+    }, 1500);
+}
+
+async function syncToSupabase() {
+    if (isDemoMode || !supabaseClient) return;
+    const key = `bioguard_results_real_${activeEstId}`;
+    const results = JSON.parse(localStorage.getItem(key) || '[]');
+    try {
+        await supabaseClient.from('bioguard_records').delete().eq('est_id', activeEstId);
+        if (results.length > 0) {
+            const batch = results.map(r => ({
+                est_id: activeEstId,
+                record_data: r
+            }));
+            await supabaseClient.from('bioguard_records').insert(batch);
+        }
+    } catch (e) {
+        console.error("Supabase sync err:", e);
+    }
+}
+
+async function loadFromSupabase() {
+    if (isDemoMode || !supabaseClient) return;
+    try {
+        const { data, error } = await supabaseClient.from('bioguard_records').select('*').eq('est_id', activeEstId);
+        if (error) return console.error("Supabase load err:", error);
+        if (data && data.length > 0) {
+            const results = data.map(d => d.record_data);
+            results.sort((a,b) => new Date(b.date) - new Date(a.date));
+            localStorage.setItem(`bioguard_results_real_${activeEstId}`, JSON.stringify(results));
+            handleRoute(window.location.hash);
+        }
+    } catch (e) { console.error(e); }
+}
+
 const STORAGE_KEY_REAL = 'bioguard_results_real';
 const STORAGE_KEY_DEMO = 'bioguard_results_demo_active';
 let isDemoMode = false;
@@ -82,6 +126,7 @@ function initApp() {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
         });
     }
+    loadFromSupabase();
 }
 
 function handleRoute(hash) {
@@ -193,10 +238,11 @@ function changeEstablishment() {
     isDemoMode = false;
     activeScenarioName = '';
     activeScenarioId = '';
-    updateDemoUI(null);
+    if (typeof updateDemoUI === 'function') updateDemoUI(null);
     
     renderEstablishmentDropdown();
     handleRoute(window.location.hash); // Refresh data
+    loadFromSupabase(); // Cargar datos del establecimiento en Supabase
 }
 
 function updateAvatar(name) {
@@ -237,6 +283,7 @@ function saveResult(data) {
     const results = getResults();
     results.unshift(data);
     localStorage.setItem(key, JSON.stringify(results));
+    requestSyncToSupabase();
 }
 
 function getInitialData() {
@@ -499,6 +546,7 @@ window.deleteResult = function(protocol, date) {
     results = results.filter(r => !(r.protocol === protocol && r.date === date));
     localStorage.setItem(key, JSON.stringify(results));
     
+    requestSyncToSupabase();
     updateHistory();
     alert("Registro eliminado del sistema.");
 };
