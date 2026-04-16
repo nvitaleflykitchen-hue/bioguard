@@ -36,6 +36,141 @@ body {
     overflow-x: hidden;
 }
 
+/* =========================================
+   LOGIN OVERLAY - PCCLAB
+   ========================================= */
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 40%, #12142a 0%, #07090D 100%);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.login-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem 2rem;
+    border-radius: 24px;
+    border: 1px solid rgba(99,102,241,0.15);
+    background: rgba(15, 18, 32, 0.85);
+    backdrop-filter: blur(24px);
+    box-shadow: 0 30px 60px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(99,102,241,0.08);
+}
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.logo-icon-large {
+    width: 52px;
+    height: 52px;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 12px rgba(99,102,241,0.5));
+}
+.login-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: #fff;
+    margin-bottom: 0.25rem;
+}
+.login-header p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+.form-group-login {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 1rem;
+}
+.form-group-login label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.form-group-login input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-group-login input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+.login-error {
+    background: rgba(239,68,68,0.1);
+    color: #f87171;
+    border: 1px solid rgba(239,68,68,0.2);
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+.login-btn {
+    width: 100%;
+    padding: 0.9rem;
+    font-size: 1rem;
+    font-weight: 600;
+    justify-content: center;
+    margin-top: 0.5rem;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.35);
+}
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* User Role Badge & Logout */
+.user-role-badge {
+    display: inline-block;
+    background: rgba(99,102,241,0.15);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+.btn-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #f87171;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+    font-family: inherit;
+}
+.btn-logout:hover {
+    background: rgba(239,68,68,0.1);
+    border-color: rgba(239,68,68,0.6);
+}
+.btn-logout i { width: 12px; height: 12px; }
+
+/* Nav item hidden for VIEWER role */
+.nav-item.role-hidden { display: none !important; }
+
 .app-container {
     display: flex;
     min-height: 100vh;

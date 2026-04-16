@@ -54,8 +54,8 @@ let charts = {}; // Track all active instances
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
-    initApp();
-    initVault(); // Iniciar bóveda de evidencias
+    initAuth();  // Auth FIRST, then app
+    initVault();
 });
 
 // IndexedDB Vault for PDF evidence
@@ -108,6 +108,132 @@ window.downloadEvidence = async function(id) {
     a.click();
     URL.revokeObjectURL(url);
     document.body.removeChild(a);
+};
+
+// =============================================
+// AUTH - Supabase Authentication & RBAC
+// =============================================
+let currentUser = null;
+let currentRole = 'viewer'; // default safe role
+
+function initAuth() {
+    const overlay = document.getElementById('login-overlay');
+    const appContainer = document.getElementById('app-container');
+
+    // Show login overlay immediately
+    overlay.classList.add('active');
+    appContainer.style.display = 'none';
+
+    if (!supabaseClient) {
+        // Fallback: no Supabase client, allow local use
+        overlay.classList.remove('active');
+        appContainer.style.display = 'flex';
+        initApp();
+        initVault();
+        return;
+    }
+
+    // Listen for auth state changes
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (session && session.user) {
+            currentUser = session.user;
+            await loadUserProfile(currentUser);
+            overlay.classList.remove('active');
+            appContainer.style.display = 'flex';
+            initApp();
+            initVault();
+            applyRBAC();
+        } else {
+            currentUser = null;
+            currentRole = 'viewer';
+            overlay.classList.add('active');
+            appContainer.style.display = 'none';
+        }
+    });
+
+    // Handle login form
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errEl = document.getElementById('login-error');
+            const btnText = document.getElementById('login-btn-text');
+            const btn = loginForm.querySelector('button[type="submit"]');
+
+            errEl.classList.add('hidden');
+            btn.disabled = true;
+            btnText.textContent = 'Verificando...';
+
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                errEl.textContent = 'Credenciales incorrectas. Verificá tu correo y contraseña.';
+                errEl.classList.remove('hidden');
+                btn.disabled = false;
+                btnText.textContent = 'Ingresar Segurizado';
+            }
+            // On success, onAuthStateChange fires automatically
+        });
+    }
+}
+
+async function loadUserProfile(user) {
+    // Try to get profile from user_profiles table
+    if (!supabaseClient) return;
+    try {
+        const { data } = await supabaseClient
+            .from('user_profiles')
+            .select('full_name, role, establishment')
+            .eq('id', user.id)
+            .single();
+
+        if (data) {
+            currentRole = data.role || 'viewer';
+            const nameEl = document.getElementById('user-name');
+            const estEl = document.getElementById('user-establishment');
+            const avatarEl = document.getElementById('user-avatar');
+            if (nameEl) nameEl.textContent = data.full_name || user.email;
+            if (estEl) {
+                estEl.textContent = currentRole.toUpperCase();
+                estEl.className = 'user-role-badge';
+            }
+            if (avatarEl) {
+                const parts = (data.full_name || user.email).trim().split(' ');
+                let initials = parts[0].charAt(0).toUpperCase();
+                if (parts[1]) initials += parts[1].charAt(0).toUpperCase();
+                avatarEl.textContent = initials;
+            }
+        } else {
+            currentRole = 'viewer';
+            const nameEl = document.getElementById('user-name');
+            if (nameEl) nameEl.textContent = user.email;
+        }
+    } catch(e) { console.error('Error loading profile:', e); }
+}
+
+function applyRBAC() {
+    // Hide 'Registrar' nav item for viewers
+    const navRegister = document.getElementById('nav-register');
+    if (navRegister) {
+        if (currentRole === 'viewer') {
+            navRegister.classList.add('role-hidden');
+        } else {
+            navRegister.classList.remove('role-hidden');
+        }
+    }
+    // Hide demo scenario selector for non-admins
+    const demoSelector = document.querySelector('.demo-selector');
+    if (demoSelector && currentRole === 'viewer') {
+        demoSelector.style.display = 'none';
+    }
+}
+
+window.logoutSupabase = async function() {
+    if (!supabaseClient) return;
+    await supabaseClient.auth.signOut();
+    // onAuthStateChange will show the overlay automatically
 };
 
 function initApp() {
