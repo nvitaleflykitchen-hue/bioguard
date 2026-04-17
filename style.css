@@ -206,7 +206,10 @@ input:-webkit-autofill:focus {
 }
 .floating-label svg { width: 15px; height: 15px; }
 .floating-input:focus ~ .floating-label,
-.floating-input:not(:placeholder-shown) ~ .floating-label {
+.floating-input:not(:placeholder-shown) ~ .floating-label,
+.floating-input:-webkit-autofill ~ .floating-label,
+.floating-input:-webkit-autofill:hover ~ .floating-label,
+.floating-input:-webkit-autofill:focus ~ .floating-label {
     top: 0.55rem; font-size: 0.72rem; color: var(--accent);
     transform: translateY(0);
 }
