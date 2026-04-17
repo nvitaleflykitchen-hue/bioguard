@@ -385,6 +385,12 @@ input:-webkit-autofill:focus {
     font-size: 0.85rem;
     font-family: 'Inter', sans-serif;
     outline: none;
+    color-scheme: dark;
+}
+.est-dropdown option, .period-dropdown option,
+select option {
+    background: #0d1225;
+    color: #f8fafc;
 }
 .est-dropdown:focus, .period-dropdown:focus {
     border-color: var(--accent) !important;
@@ -1006,11 +1012,17 @@ input:-webkit-autofill:focus {
 .chart-modal-header h3 { font-size: 1rem; font-weight: 700; color: #fff; }
 .chart-modal-body {
     flex: 1; padding: 1.5rem;
-    display: flex; align-items: center; justify-content: center;
-    min-height: 400px;
+    display: flex; align-items: stretch; justify-content: center;
+    min-height: 460px;
+    height: 460px;
     overflow: hidden;
+    position: relative;
 }
-.chart-modal-body canvas { max-width: 100%; max-height: 450px; }
+.chart-modal-body canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
 .chart-modal-footer {
     padding: 1rem 1.5rem;
     border-top: 1px solid var(--border);

@@ -153,7 +153,7 @@
 
                 <hr class="nav-divider">
 
-                <a href="#users" class="nav-item role-admin-only" id="nav-users">
+                <a href="#users" class="nav-item" id="nav-users" style="display:flex;">
                     <i data-lucide="users"></i>
                     <span>Usuarios</span>
                 </a>
@@ -181,10 +181,10 @@
                     <div class="header-filter-group">
                         <label>Período</label>
                         <select id="period-filter" class="period-dropdown" onchange="handlePeriodChange()">
-                            <option value="6m">📅 Últimos 6 meses</option>
-                            <option value="3m">📅 Últimos 3 meses</option>
-                            <option value="12m">📅 Último año</option>
-                            <option value="all">📅 Todo el historial</option>
+                            <option value="6m" style="background:#0d1225;color:#f8fafc;">Últimos 6 meses</option>
+                            <option value="3m" style="background:#0d1225;color:#f8fafc;">Últimos 3 meses</option>
+                            <option value="12m" style="background:#0d1225;color:#f8fafc;">Último año</option>
+                            <option value="all" style="background:#0d1225;color:#f8fafc;">Todo el historial</option>
                         </select>
                     </div>
 
@@ -859,42 +859,107 @@
     <script src="app.js"></script>
     <script>
     // ═══════════════════════════════════════════════════════
-    //  CHART EXPAND / MODAL SYSTEM
+    //  CHART EXPAND / MODAL SYSTEM — v2 (Chart.js v3 safe)
     // ═══════════════════════════════════════════════════════
     let expandedChart = null;
 
     window.expandChart = function(sourceCanvasId, title) {
-        const sourceCanvas = document.getElementById(sourceCanvasId);
-        if (!sourceCanvas) return;
-
         const modal = document.getElementById('chart-expand-modal');
-        const modalTitle = document.getElementById('chart-modal-title');
-        const modalBody = document.getElementById('chart-modal-body');
+        if (!modal) return;
 
-        // Destroy previous expanded chart
+        // Destroy previous
         if (expandedChart) { expandedChart.destroy(); expandedChart = null; }
 
+        const modalTitle = document.getElementById('chart-modal-title');
+        const modalBody  = document.getElementById('chart-modal-body');
         modalTitle.textContent = title;
-        modalBody.innerHTML = '<canvas id="chart-modal-canvas" style="max-height:480px;width:100%;"></canvas>';
+        modalBody.innerHTML = '<canvas id="chart-modal-canvas" style="width:100%;height:100%;display:block;"></canvas>';
 
-        // Get config from original chart
-        const originalChart = Object.values(Chart.instances || {}).find(c => c.canvas && c.canvas.id === sourceCanvasId);
+        // Chart.js v3 API: Chart.getChart(canvasId)
+        const srcCanvas = document.getElementById(sourceCanvasId);
+        if (!srcCanvas) { modal.classList.remove('hidden'); return; }
+        const originalChart = (typeof Chart !== 'undefined' && Chart.getChart)
+            ? Chart.getChart(srcCanvas)
+            : null;
 
-        if (originalChart) {
-            const newCtx = document.getElementById('chart-modal-canvas');
-            const cfg = JSON.parse(JSON.stringify(originalChart.config));
-            // Make it bigger
-            if (cfg.options) {
-                cfg.options.maintainAspectRatio = false;
-                if (!cfg.options.plugins) cfg.options.plugins = {};
-                if (!cfg.options.plugins.legend) cfg.options.plugins.legend = {};
-                cfg.options.plugins.legend.display = true;
+        if (!originalChart) { modal.classList.remove('hidden'); return; }
+
+        const safeColors = [
+            '#6366f1','#10b981','#f59e0b','#ef4444',
+            '#38bdf8','#a78bfa','#34d399','#fbbf24','#f472b6','#fb923c'
+        ];
+        const chartType = originalChart.config.type;
+
+        // Safely clone datasets — strip non-serializable CanvasGradient objects
+        const datasets = originalChart.data.datasets.map((ds, i) => {
+            const sd = { label: ds.label || '', data: Array.from(ds.data || []) };
+
+            if (chartType === 'line') {
+                sd.borderColor      = typeof ds.borderColor === 'string' ? ds.borderColor : safeColors[i % safeColors.length];
+                sd.backgroundColor  = sd.borderColor + '22';
+                sd.fill             = !!ds.fill;
+                sd.tension          = ds.tension != null ? ds.tension : 0.4;
+                sd.pointRadius      = 4;
+                sd.pointHoverRadius = 7;
+                sd.borderWidth      = 2;
+            } else if (chartType === 'doughnut' || chartType === 'pie') {
+                const n = (ds.data || []).length;
+                sd.backgroundColor  = Array.isArray(ds.backgroundColor) && typeof ds.backgroundColor[0] === 'string'
+                    ? ds.backgroundColor
+                    : safeColors.slice(0, n);
+                sd.borderWidth = 0;
+                if (ds.cutout != null) sd.cutout = ds.cutout;
+            } else if (chartType === 'bar') {
+                sd.backgroundColor = typeof ds.backgroundColor === 'string'
+                    ? ds.backgroundColor
+                    : safeColors[i % safeColors.length] + 'bb';
+                sd.borderColor  = safeColors[i % safeColors.length];
+                sd.borderWidth  = 1;
+                sd.borderRadius = 6;
+            } else {
+                sd.backgroundColor = safeColors[i % safeColors.length] + '88';
+                sd.borderColor     = safeColors[i % safeColors.length];
+                sd.borderWidth     = 2;
             }
-            expandedChart = new Chart(newCtx, cfg);
-        }
+            return sd;
+        });
+
+        const hasAxes = chartType !== 'doughnut' && chartType !== 'pie' && chartType !== 'radar';
+
+        expandedChart = new Chart(document.getElementById('chart-modal-canvas'), {
+            type: chartType,
+            data: {
+                labels:   Array.from(originalChart.data.labels || []),
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 500 },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: { color: '#94a3b8', padding: 20, usePointStyle: true, pointStyleWidth: 8 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(13,18,37,0.97)',
+                        borderColor:     'rgba(255,255,255,0.08)',
+                        borderWidth:     1,
+                        titleColor:      '#f8fafc',
+                        bodyColor:       '#94a3b8',
+                        padding:         14,
+                        cornerRadius:    8
+                    }
+                },
+                scales: hasAxes ? {
+                    x: { ticks: { color: '#64748b', font: { size: 12 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                    y: { ticks: { color: '#64748b', font: { size: 12 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+                } : {}
+            }
+        });
 
         modal.classList.remove('hidden');
-        // Re-init lucide icons in modal
         if (window.lucide) lucide.createIcons();
     };
 
