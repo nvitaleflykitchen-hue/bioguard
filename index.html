@@ -3,29 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PCCLAB Security</title>
+    <title>PCCLAB — Sistema Bromatológico ISO 9001</title>
+    <meta name="description" content="PCCLAB: Sistema operativo bromatológico para gestión de calidad e inocuidad alimentaria bajo norma ISO 9001:2015 e IRAM-NM 323.">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#05070f">
 
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <!-- HTML2PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- PDF.js for real PDF text extraction -->
+    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-mode">
-    <!-- Login Overlay Premium -->
+
+    <!-- ══════════════════════════════════════
+         LOGIN OVERLAY — Premium Split Screen
+         ══════════════════════════════════════ -->
     <div id="login-overlay" class="login-overlay-premium">
-        <!-- Animated Bioluminescent Background -->
         <div class="bio-bg-container">
             <div class="bio-sphere sphere-1"></div>
             <div class="bio-sphere sphere-2"></div>
@@ -39,20 +43,29 @@
                 <div class="brand-content">
                     <img src="LOGO PCCLAB.png" alt="PCCLAB Logo" class="brand-logo-large">
                     <h1 class="brand-title">PCCLAB <span>Security</span></h1>
-                    <p class="brand-subtitle">Inteligencia Bromatológica ISO 9001</p>
-                    
+                    <p class="brand-subtitle">Sistema Operativo Bromatológico — ISO 9001:2015</p>
+
                     <div class="brand-features">
                         <div class="feature-item">
                             <i data-lucide="shield-check"></i>
-                            <span>Trazabilidad Blockchain</span>
+                            <div>
+                                <div style="font-weight:600;color:#fff;font-size:0.9rem;">Trazabilidad Completa</div>
+                                <div style="font-size:0.78rem;margin-top:2px;">Gesión de protocolos con respaldo digital</div>
+                            </div>
                         </div>
                         <div class="feature-item">
                             <i data-lucide="activity"></i>
-                            <span>Monitoreo Predictivo IA</span>
+                            <div>
+                                <div style="font-weight:600;color:#fff;font-size:0.9rem;">Monitoreo de Inocuidad</div>
+                                <div style="font-size:0.78rem;margin-top:2px;">Control microbiológico en tiempo real</div>
+                            </div>
                         </div>
                         <div class="feature-item">
                             <i data-lucide="database"></i>
-                            <span>Arquitectura Multitenant</span>
+                            <div>
+                                <div style="font-weight:600;color:#fff;font-size:0.9rem;">Arquitectura Multitenant</div>
+                                <div style="font-size:0.78rem;margin-top:2px;">Gestión de múltiples plantas y auditorías</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -60,13 +73,13 @@
 
             <!-- Right Form Side -->
             <div class="login-form-side">
-                <div class="login-card-premium glass">
+                <div class="login-card-premium">
                     <div class="login-header-mobile">
                         <img src="LOGO PCCLAB.png" alt="PCCLAB Logo" class="login-logo-mobile">
                     </div>
                     <h2>Ingreso Segurizado</h2>
-                    <p class="login-desc">Acceda al ecosistema central de calidad.</p>
-                    
+                    <p class="login-desc">Acceda al ecosistema central de calidad bromatológica.</p>
+
                     <form id="login-form" class="premium-form">
                         <div class="form-group floating-group">
                             <input type="email" id="login-email" class="floating-input" required placeholder=" ">
@@ -77,12 +90,12 @@
                             <label for="login-password" class="floating-label"><i data-lucide="key"></i> Contraseña de Acceso</label>
                         </div>
                         <div id="login-error" class="login-error hidden">Credenciales incorrectas.</div>
-                        <button type="submit" class="btn btn-primary btn-premium-login">
+                        <button type="submit" class="btn btn-primary btn-premium-login" id="btn-login">
                             <span id="login-btn-text">Autenticar Perfil</span>
                             <i data-lucide="arrow-right" id="login-btn-icon"></i>
                         </button>
                     </form>
-                    
+
                     <div class="login-footer">
                         <p>Powered by <strong>Octopus Standard</strong></p>
                     </div>
@@ -91,42 +104,71 @@
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════
+         MAIN APP CONTAINER
+         ══════════════════════════════════════ -->
     <div class="app-container" id="app-container" style="display: none;">
-        <!-- Sidebar -->
-        <aside class="sidebar">
+
+        <!-- ── SIDEBAR ── -->
+        <aside class="sidebar" id="app-sidebar">
             <div class="sidebar-header">
                 <img src="LOGO PCCLAB.png" alt="PCCLAB" class="sidebar-logo-img">
             </div>
+
             <nav class="sidebar-nav">
+                <span class="nav-section-label">Principal</span>
+
                 <a href="#dashboard" class="nav-item active" id="nav-dashboard">
                     <i data-lucide="layout-dashboard"></i>
                     <span>Resumen</span>
                 </a>
-                <a href="#register" class="nav-item" id="nav-register">
-                    <i data-lucide="plus-circle"></i>
-                    <span>Registrar</span>
-                </a>
+
                 <a href="#trends" class="nav-item" id="nav-trends">
                     <i data-lucide="trending-up"></i>
                     <span>Tendencias</span>
                 </a>
+
                 <a href="#history" class="nav-item" id="nav-history">
                     <i data-lucide="history"></i>
                     <span>Historial</span>
                 </a>
-                <a href="#users" class="nav-item role-admin-only" id="nav-users" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px;">
+
+                <span class="nav-section-label">Operaciones</span>
+
+                <a href="#register" class="nav-item" id="nav-register">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Nuevo Registro</span>
+                </a>
+
+                <a href="#" class="nav-item" id="nav-alerts" onclick="navigateToAlerts(); return false;">
+                    <i data-lucide="bell-ring"></i>
+                    <span>Alertas</span>
+                    <span class="nav-badge" id="nav-alert-count">0</span>
+                </a>
+
+                <a href="#" class="nav-item" id="nav-reports" onclick="navigateToReports(); return false;">
+                    <i data-lucide="file-text"></i>
+                    <span>Informes</span>
+                </a>
+
+                <hr class="nav-divider">
+
+                <a href="#users" class="nav-item role-admin-only" id="nav-users">
                     <i data-lucide="users"></i>
                     <span>Usuarios</span>
                 </a>
             </nav>
+
             <div class="sidebar-footer">
-                <p class="iso-badge">ISO 9001:2015</p>
-                <p class="iso-badge">IRAM 324:2010 | IRAM-NM 323</p>
+                <p class="iso-badge">ISO 9001:2015 | IRAM 324:2010</p>
+                <p class="iso-badge">IRAM-NM 323 | Octopus Standard</p>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
+        <!-- ── MAIN CONTENT ── -->
+        <main class="main-content" id="main-content">
+
+            <!-- TOP HEADER -->
             <header class="top-header">
                 <div class="header-left">
                     <div class="header-filter-group">
@@ -135,15 +177,22 @@
                             <h2 id="display-establishment" class="hidden">PCCLAB</h2>
                         </div>
                     </div>
-                    <div class="header-filter-group" style="margin-left: 20px;">
+
+                    <div class="header-filter-group">
                         <label>Período</label>
-                        <select class="period-dropdown" style="background:#0F172A; border: 1px solid #1E293B; color: #F8FAFC; border-radius:6px; padding:6px 12px; height: 38px;">
-                            <option>16/10/2025 - 16/04/2026</option>
+                        <select id="period-filter" class="period-dropdown" onchange="handlePeriodChange()">
+                            <option value="6m">📅 Últimos 6 meses</option>
+                            <option value="3m">📅 Últimos 3 meses</option>
+                            <option value="12m">📅 Último año</option>
+                            <option value="all">📅 Todo el historial</option>
                         </select>
                     </div>
-                    <span id="active-scenario-tag" class="hidden" style="margin-left:15px;">MODO DEMO: <span id="scenario-name"></span></span>
-                    
-                    <div class="demo-selector hidden" style="margin-left:15px;">
+
+                    <span id="active-scenario-tag" class="hidden" style="font-size:0.78rem; color:var(--warning); font-weight:600;">
+                        MODO DEMO: <span id="scenario-name"></span>
+                    </span>
+
+                    <div class="demo-selector hidden" style="margin-left:5px;">
                         <select id="demo-scenario" onchange="loadDemoScenario()">
                             <option value="">Opciones de Administrador</option>
                             <option value="real">Restaurar: Mis Datos Reales</option>
@@ -155,58 +204,61 @@
                 <div class="header-right">
                     <div class="user-profile">
                         <div class="user-info-text text-right">
-                            <label id="user-business">Cargando Empresa...</label>
-                            <span class="user-role" id="user-name" style="font-weight:600; font-size:1rem; padding:0;">Conectando...</span>
-                            <div id="user-role-container" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; margin-top: 4px;">
+                            <label id="user-business">Cargando...</label>
+                            <span class="user-role" id="user-name">Conectando...</span>
+                            <div id="user-role-container">
                                 <small id="user-establishment" class="user-role-badge">Conectando</small>
                                 <span id="user-plan-badge" class="plan-badge">FREE</span>
-                                <span class="dev-badge">DEV</span>
+                                <span class="dev-badge" style="display:none;">DEV</span>
                             </div>
-                            <button id="btn-logout" class="btn-logout" onclick="logoutSupabase()" title="Cerrar Sesión"><i data-lucide="log-out"></i> Salir</button>
+                            <button id="btn-logout" class="btn-logout" onclick="logoutSupabase()" title="Cerrar Sesión">
+                                <i data-lucide="log-out"></i> Salir
+                            </button>
                         </div>
-                        <div class="avatar" id="user-avatar" style="background: var(--bg-card); border: 2px solid var(--success); color: var(--text-primary); font-size: 0.9rem;">?</div>
+                        <div class="avatar" id="user-avatar">?</div>
                     </div>
                 </div>
             </header>
 
-            <!-- Dashboard View -->
+            <!-- ══════════════════════════════
+                 DASHBOARD VIEW
+                 ══════════════════════════════ -->
             <section id="view-dashboard" class="view">
-                <div class="view-header">
-                    <h2>Panel de Control</h2>
-                    <p class="timestamp">Actualizado: <span id="current-date"></span></p>
+                <div class="view-header flex-header">
+                    <div>
+                        <h2>Panel de Control</h2>
+                        <p class="timestamp">Actualizado: <span id="current-date"></span></p>
+                    </div>
                 </div>
 
-                <!-- Scenario Introduction Card (Only for Simulations) -->
+                <!-- Scenario Intro Card (Simulations) -->
                 <div id="scenario-intro-card" class="glass scenario-intro hidden">
                     <div class="intro-header">
                         <div class="intro-badge">Introducción al Caso de Estudio</div>
-                        <button onclick="generateCaseStudyReport()" class="btn-primary btn-small">
-                            <i data-lucide="file-text"></i> Descargar Informe de Auditoría (PDF)
+                        <button onclick="generateCaseStudyReport()" class="btn btn-primary btn-small">
+                            <i data-lucide="file-text"></i> Descargar Informe PDF
                         </button>
                     </div>
                     <div id="scenario-intro-content" class="intro-text"></div>
-                    
                     <div class="bitacora-section">
                         <div class="intro-badge secondary">Bitácora de Gestión de Calidad</div>
                         <div id="scenario-bitacora" class="timeline"></div>
                     </div>
-
-                    <!-- Risk Bubble Chart Section -->
                     <div id="case-study-risk-container" class="risk-chart-section hidden">
-                        <div class="intro-badge secondary">Mapa de Riesgo por Sector (Análisis de Burbujas)</div>
+                        <div class="intro-badge secondary">Mapa de Riesgo por Sector</div>
                         <div class="chart-wrapper" style="height: 300px;">
                             <canvas id="risk-bubble-chart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- Pathogen Fact Sheet (Ficha Técnica) -->
+                <!-- Pathogen Fact Sheet -->
                 <div id="pathogen-fact-sheet" class="glass pathogen-card hidden"></div>
 
-                <!-- 5 Metrics Cards Grid -->
+                <!-- KPI Cards -->
                 <div class="kpi-grid">
-                    <div class="kpi-card glass">
-                        <div class="kpi-icon-wrap" style="background: rgba(26,79,130,0.15); color: #60A5FA;">
+                    <div class="kpi-card" id="kpi-total">
+                        <div class="kpi-icon-wrap" style="background:rgba(56,189,248,0.1);color:#38bdf8;">
                             <i data-lucide="clipboard-list"></i>
                         </div>
                         <div class="kpi-info">
@@ -215,9 +267,9 @@
                             <span class="kpi-sub">En el período</span>
                         </div>
                     </div>
-                    
-                    <div class="kpi-card glass">
-                        <div class="kpi-icon-wrap" style="background: var(--success-glow); color: var(--success);">
+
+                    <div class="kpi-card" id="kpi-apto">
+                        <div class="kpi-icon-wrap" style="background:rgba(16,185,129,0.1);color:#10b981;">
                             <i data-lucide="check-circle-2"></i>
                         </div>
                         <div class="kpi-info">
@@ -227,30 +279,30 @@
                         </div>
                     </div>
 
-                    <div class="kpi-card glass" style="border: 1px solid rgba(251,192,45,0.2);">
-                        <div class="kpi-icon-wrap" style="background: rgba(251,192,45,0.15); color: var(--warning);">
+                    <div class="kpi-card" id="kpi-obs" style="border-color:rgba(245,158,11,0.15);">
+                        <div class="kpi-icon-wrap" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
                             <i data-lucide="alert-triangle"></i>
                         </div>
                         <div class="kpi-info">
                             <span class="kpi-label">Observados</span>
                             <span class="kpi-val" id="stat-obs">0</span>
-                            <span class="kpi-sub" id="stat-obs-pct" style="color:var(--text-secondary);">0%</span>
+                            <span class="kpi-sub" id="stat-obs-pct">0%</span>
                         </div>
                     </div>
 
-                    <div class="kpi-card glass" style="border: 1px solid rgba(229,57,53,0.3);">
-                        <div class="kpi-icon-wrap" style="background: var(--error-glow); color: var(--error);">
+                    <div class="kpi-card" id="kpi-danger" style="border-color:rgba(239,68,68,0.2);">
+                        <div class="kpi-icon-wrap" style="background:rgba(239,68,68,0.1);color:#ef4444;">
                             <i data-lucide="x-circle"></i>
                         </div>
                         <div class="kpi-info">
                             <span class="kpi-label">Fuera de Rango</span>
                             <span class="kpi-val" id="stat-danger">0</span>
-                            <span class="kpi-sub" id="stat-danger-pct" style="color:var(--text-secondary);">0%</span>
+                            <span class="kpi-sub" id="stat-danger-pct">0%</span>
                         </div>
                     </div>
 
-                    <div class="kpi-card glass">
-                        <div class="kpi-icon-wrap" style="background: rgba(255,255,255,0.05); color: var(--text-secondary);">
+                    <div class="kpi-card" id="kpi-pending">
+                        <div class="kpi-icon-wrap" style="background:rgba(148,163,184,0.06);color:#64748b;">
                             <i data-lucide="clock"></i>
                         </div>
                         <div class="kpi-info">
@@ -262,94 +314,117 @@
                 </div>
 
                 <!-- Critical Alerts Banner -->
-                <div class="alerts-banner glass">
+                <div class="alerts-banner" id="alerts-banner">
                     <div class="alerts-banner-header">
-                        <i data-lucide="alert-triangle" style="color:var(--error);"></i>
-                        <h3 style="color:#F8FAFC; margin:0; font-size:0.95rem; font-family:'Montserrat',sans-serif;">Alertas Críticas</h3>
+                        <i data-lucide="alert-triangle"></i>
+                        <h3>Alertas Críticas</h3>
                     </div>
                     <div class="alerts-banner-content">
                         <div class="alert-item">
-                            <strong style="color:var(--error); font-size: 0.95rem;">0 DESVÍOS CRÍTICOS</strong>
-                            <span style="font-size: 0.85rem;">Requieren acción inmediata</span>
+                            <strong style="color:var(--danger);" id="alert-desvios-count">0 DESVÍOS CRÍTICOS</strong>
+                            <span>Requieren acción inmediata</span>
                         </div>
-                        <i data-lucide="chevron-right" style="color:var(--text-secondary); width: 16px; height: 16px;"></i>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:14px;height:14px;flex-shrink:0;"></i>
                         <div class="alert-item">
-                            <strong style="color:var(--warning); font-size: 0.95rem;">0 ANÁLISIS POR VENCER</strong>
-                            <span style="font-size: 0.85rem;">Próximos 7 días</span>
+                            <strong style="color:var(--warning);" id="alert-vencer-count">0 ANÁLISIS POR VENCER</strong>
+                            <span>Próximos 7 días</span>
                         </div>
-                        <i data-lucide="chevron-right" style="color:var(--text-secondary); width: 16px; height: 16px;"></i>
-                        <div class="alert-item">
-                            <strong style="color:var(--error); font-size: 0.95rem;">1 PATÓGENO DETECTADO</strong>
-                            <span style="font-size: 0.85rem;">Salmonella spp. en 25g</span>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:14px;height:14px;flex-shrink:0;"></i>
+                        <div class="alert-item" id="alert-patogeno-item">
+                            <strong style="color:var(--danger);">SIN PATÓGENOS</strong>
+                            <span>Todo dentro del rango</span>
                         </div>
-                        <button class="btn btn-small" style="background: rgba(255,255,255,0.05); border:1px solid var(--border); color:#F8FAFC; margin-left: auto;">Ver todas las alertas</button>
+                        <button class="btn btn-small btn-secondary" style="margin-left:auto;" onclick="navigateToAlerts()">
+                            Ver todas las alertas
+                        </button>
                     </div>
                 </div>
 
                 <!-- 4 Charts Grid -->
                 <div class="metrics-dashboard-grid">
-                    <div class="chart-card glass">
+                    <!-- Chart 1: Trend Line -->
+                    <div class="chart-card">
                         <div class="chart-header">
-                            <h3 style="font-size: 0.9rem;">Evolución de Carga Aerobia (UFC/g)</h3>
-                            <select class="header-inline-select"><option>Últimos 6 meses</option></select>
+                            <h3>Evolución de Carga Aerobia (UFC/g)</h3>
+                            <div class="chart-header-controls">
+                                <select class="header-inline-select"><option>Últimos 6 meses</option></select>
+                                <button class="chart-expand-btn" onclick="expandChart('trendChart','Evolución de Carga Aerobia')" title="Expandir gráfico">
+                                    <i data-lucide="maximize-2"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="canvas-wrapper">
                             <canvas id="trendChart"></canvas>
                         </div>
                     </div>
-                    
-                    <div class="chart-card glass">
+
+                    <!-- Chart 2: Compliance Donut -->
+                    <div class="chart-card">
                         <div class="chart-header">
-                            <h3 style="font-size: 0.9rem;">Cumplimiento Global</h3>
-                            <select class="header-inline-select"><option>Últimos 6 meses</option></select>
-                        </div>
-                        <div class="canvas-wrapper" style="display:flex; align-items:center; justify-content:center;">
-                            <!-- Dynamic Compliance Chart Container -->
-                            <div id="compliance-chart-container" style="position:relative; width:180px; height:180px; display:flex; align-items:center; justify-content:center; flex-direction:column;">
-                                <canvas id="chartComplianceDonut"></canvas>
-                                <div class="donut-inner-text" style="position:absolute; display:flex; flex-direction:column; align-items:center;">
-                                    <span id="stat-compliance-pct" style="font-size: 2rem; font-weight:700;">--</span>
-                                    <span style="font-size: 0.75rem; color:var(--text-secondary);">Cumplimiento</span>
-                                </div>
+                            <h3>Cumplimiento Global</h3>
+                            <div class="chart-header-controls">
+                                <button class="chart-expand-btn" onclick="expandChart('chartComplianceDonut','Cumplimiento Global')" title="Expandir gráfico">
+                                    <i data-lucide="maximize-2"></i>
+                                </button>
                             </div>
                         </div>
-                        <div style="display:flex; gap: 10px; margin-top:20px; font-size:0.75rem; justify-content:center;">
-                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--success); border-radius:2px;"></span> Cumple (<span id="stat-count-apto">0</span>)</span>
-                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--warning); border-radius:2px;"></span> Obs. (<span id="stat-count-obs">0</span>)</span>
-                            <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; background:var(--error); border-radius:2px;"></span> No cumple (<span id="stat-count-danger">0</span>)</span>
+                        <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;">
+                            <div id="compliance-chart-container" style="position:relative;width:160px;height:160px;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+                                <canvas id="chartComplianceDonut"></canvas>
+                                <div class="donut-inner-text">
+                                    <span id="stat-compliance-pct" style="font-size:1.6rem;font-weight:800;color:#fff;">--</span>
+                                    <span style="font-size:0.7rem;color:var(--text-secondary);">Cumplimiento</span>
+                                </div>
+                            </div>
+                            <div class="chart-legend">
+                                <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div> Cumple (<span id="stat-count-apto">0</span>)</div>
+                                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> Obs. (<span id="stat-count-obs">0</span>)</div>
+                                <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> No cumple (<span id="stat-count-danger">0</span>)</div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="chart-card glass">
+
+                    <!-- Chart 3: Critical Areas Ranking -->
+                    <div class="chart-card">
                         <div class="chart-header">
-                            <h3 style="font-size: 0.9rem;">Ranking de Áreas Críticas</h3>
-                            <select class="header-inline-select"><option>Últimos 6 meses</option></select>
+                            <h3>Ranking de Áreas Críticas</h3>
+                            <div class="chart-header-controls">
+                                <button class="chart-expand-btn" onclick="expandChart('chartCompliance','Ranking de Áreas Críticas')" title="Expandir gráfico">
+                                    <i data-lucide="maximize-2"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="canvas-wrapper">
                             <canvas id="chartCompliance"></canvas>
                         </div>
                     </div>
-                    
-                    <div class="chart-card glass">
+
+                    <!-- Chart 4: Matrix Donut -->
+                    <div class="chart-card">
                         <div class="chart-header">
-                            <h3 style="font-size: 0.9rem;">Análisis por Matriz</h3>
-                            <select class="header-inline-select"><option>Últimos 6 meses</option></select>
+                            <h3>Análisis por Matriz</h3>
+                            <div class="chart-header-controls">
+                                <button class="chart-expand-btn" onclick="expandChart('chartZoneAlerts','Análisis por Matriz')" title="Expandir gráfico">
+                                    <i data-lucide="maximize-2"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="canvas-wrapper">
-                            <canvas id="chartZoneAlerts" style="max-height: 220px;"></canvas>
+                            <canvas id="chartZoneAlerts"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bottom Layout: Registros y Acciones -->
+                <!-- Bottom: Table + Quick Actions -->
                 <div class="bottom-dashboard-grid">
-                    <!-- Table section -->
-                    <div class="table-section-dashboard glass">
-                        <div class="flex-header" style="margin-bottom: 12px; padding: 10px;">
-                            <h3 style="font-family:'Montserrat',sans-serif; font-size:1.1rem; color:#fff;">Últimos Registros</h3>
-                            <button class="btn btn-small" style="background:transparent; border:1px solid var(--border); color:var(--text-secondary);" onclick="window.location.hash='#history'">Ver todo</button>
+                    <div class="table-section-dashboard">
+                        <div class="flex-header">
+                            <h3>Últimos Registros</h3>
+                            <button class="btn btn-small btn-secondary" onclick="window.location.hash='#history'">
+                                Ver todo
+                            </button>
                         </div>
-                        <div class="table-container" style="max-height: 250px; overflow-y:auto; border-radius:8px;">
+                        <div style="overflow-x:auto;">
                             <table class="modern-table">
                                 <thead>
                                     <tr>
@@ -362,37 +437,36 @@
                                     </tr>
                                 </thead>
                                 <tbody id="recent-results">
-                                    <tr><td colspan="6" style="text-align:center;">Cargando registros...</td></tr>
+                                    <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-secondary);">Cargando registros...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Quick Actions section -->
-                    <div class="quick-actions-section glass">
-                        <h3 style="font-family:'Montserrat',sans-serif; font-size:1.1rem; color:#fff; margin-bottom: 15px; padding-left: 10px;">Acciones Rápidas</h3>
+                    <div class="quick-actions-section">
+                        <h3>Acciones Rápidas</h3>
                         <div class="quick-actions-grid">
-                            <button class="quick-action-btn" onclick="document.getElementById('nav-register').click()">
+                            <button class="quick-action-btn" id="qa-load" onclick="document.getElementById('nav-register').click()">
                                 <i data-lucide="flask-conical"></i>
                                 <span>Cargar Análisis</span>
                             </button>
-                            <button class="quick-action-btn">
-                                <i data-lucide="file-text"></i>
+                            <button class="quick-action-btn" id="qa-pdf" onclick="document.getElementById('pdf-input').click()">
+                                <i data-lucide="file-up"></i>
                                 <span>Importar PDF</span>
                             </button>
-                            <button class="quick-action-btn">
-                                <i data-lucide="test-tube"></i>
-                                <span>Registrar Muestra</span>
+                            <button class="quick-action-btn" id="qa-trends" onclick="window.location.hash='#trends'">
+                                <i data-lucide="trending-up"></i>
+                                <span>Ver Tendencias</span>
                             </button>
-                            <button class="quick-action-btn">
+                            <button class="quick-action-btn" id="qa-report" onclick="navigateToReports()">
                                 <i data-lucide="clipboard-check"></i>
                                 <span>Emitir Informe</span>
                             </button>
-                            <button class="quick-action-btn">
-                                <i data-lucide="clipboard-list"></i>
-                                <span>Plan de Acción</span>
+                            <button class="quick-action-btn" id="qa-export" onclick="exportData()">
+                                <i data-lucide="download"></i>
+                                <span>Exportar CSV</span>
                             </button>
-                            <button class="quick-action-btn" onclick="document.getElementById('nav-history').click()">
+                            <button class="quick-action-btn" id="qa-history" onclick="document.getElementById('nav-history').click()">
                                 <i data-lucide="history"></i>
                                 <span>Ver Historial</span>
                             </button>
@@ -401,15 +475,17 @@
                 </div>
             </section>
 
-            <!-- Trends View -->
+            <!-- ══════════════════════════════
+                 TRENDS VIEW
+                 ══════════════════════════════ -->
             <section id="view-trends" class="view">
                 <div class="view-header flex-header">
                     <div>
-                        <h2>Inteligencia de Inocuidad (ISO 9001)</h2>
-                        <p>Análisis Semestral de Tendencias y Control de Riesgos.</p>
+                        <h2>Inteligencia de Inocuidad</h2>
+                        <p>Análisis Semestral de Tendencias y Control de Riesgos — ISO 9001:2015</p>
                     </div>
                     <div class="header-actions">
-                        <select id="semester-filter" class="btn btn-secondary" style="padding: 8px 12px; font-weight: 500;" onchange="updateTrends()">
+                        <select id="semester-filter" class="btn btn-secondary" style="padding:8px 12px;font-weight:500;" onchange="updateTrends()">
                             <option value="recent">Últimos 6 Meses</option>
                             <option value="S1-2026">1° Semestre 2026</option>
                             <option value="S2-2026">2° Semestre 2026</option>
@@ -420,125 +496,139 @@
                         </button>
                     </div>
                 </div>
-                <!-- Plant State Indicator -->
+
                 <div class="plant-status-banner" id="plant-status-banner">
                     <div class="status-indicator" id="plant-status-dot"></div>
                     <div class="status-text">
-                        <strong>Estado General Planta:</strong> <span id="plant-status-text">Calculando...</span>
+                        <strong>Estado General Planta:</strong>
+                        <span id="plant-status-text">Calculando...</span>
                     </div>
                 </div>
-                
+
                 <div class="charts-grid-management">
-                    <!-- Chart A: Tendencia por Zona -->
-                    <div class="chart-card glass">
+                    <div class="chart-card">
                         <div class="chart-header">
                             <h3>A: Carga Microbiológica por Zona</h3>
+                            <button class="chart-expand-btn" onclick="expandChart('chartZoneTrends','Carga Microbiológica por Zona')" title="Expandir">
+                                <i data-lucide="maximize-2"></i>
+                            </button>
                         </div>
-                        <div class="canvas-wrapper">
-                            <canvas id="chartZoneTrends"></canvas>
-                        </div>
+                        <div class="canvas-wrapper"><canvas id="chartZoneTrends"></canvas></div>
                     </div>
-                    
-                    <!-- Chart B: Puntos Críticos -->
-                    <div class="chart-card glass">
+
+                    <div class="chart-card">
                         <div class="chart-header">
                             <h3>B: Ranking de Áreas Críticas</h3>
+                            <button class="chart-expand-btn" onclick="expandChart('chartCriticalPoints','Ranking de Áreas Críticas')" title="Expandir">
+                                <i data-lucide="maximize-2"></i>
+                            </button>
                         </div>
-                        <div class="canvas-wrapper">
-                            <canvas id="chartCriticalPoints"></canvas>
-                        </div>
+                        <div class="canvas-wrapper"><canvas id="chartCriticalPoints"></canvas></div>
                     </div>
 
-                    <!-- Chart C: Cumplimiento General -->
-                    <div class="chart-card glass">
+                    <div class="chart-card">
                         <div class="chart-header">
                             <h3>C: Cumplimiento Global de Inocuidad</h3>
+                            <button class="chart-expand-btn" onclick="expandChart('chartGlobalCompliance','Cumplimiento Global de Inocuidad')" title="Expandir">
+                                <i data-lucide="maximize-2"></i>
+                            </button>
                         </div>
-                        <div class="canvas-wrapper" style="height: 250px;">
-                            <canvas id="chartGlobalCompliance"></canvas>
-                        </div>
+                        <div class="canvas-wrapper" style="height:250px;"><canvas id="chartGlobalCompliance"></canvas></div>
                     </div>
 
-                    <!-- Chart D: Evolución de Patógenos -->
-                    <div class="chart-card glass">
+                    <div class="chart-card">
                         <div class="chart-header">
                             <h3>D: Evolución de Patógeno Específico</h3>
-                            <select id="pathogen-evolution-filter" class="header-inline-select" onchange="updateTrends()">
-                                <option value="aerobios">Aerobios Totales</option>
-                                <option value="coliformes">Coliformes Totales</option>
-                                <option value="ecoli">E. coli</option>
-                                <option value="ecoli157">E. coli O157:H7</option>
-                                <option value="salmonella">Salmonella spp.</option>
-                                <option value="staphylococcus">Staph. aureus</option>
-                                <option value="listeria">Listeria m.</option>
-                                <option value="clostridium">Clostridium p.</option>
-                            </select>
+                            <div class="chart-header-controls">
+                                <select id="pathogen-evolution-filter" class="header-inline-select" onchange="updateTrends()">
+                                    <option value="aerobios">Aerobios Totales</option>
+                                    <option value="coliformes">Coliformes Totales</option>
+                                    <option value="ecoli">E. coli</option>
+                                    <option value="ecoli157">E. coli O157:H7</option>
+                                    <option value="salmonella">Salmonella spp.</option>
+                                    <option value="staphylococcus">Staph. aureus</option>
+                                    <option value="listeria">Listeria m.</option>
+                                    <option value="clostridium">Clostridium p.</option>
+                                </select>
+                                <button class="chart-expand-btn" onclick="expandChart('chartPathogenEvolution','Evolución de Patógeno')" title="Expandir">
+                                    <i data-lucide="maximize-2"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="canvas-wrapper">
-                            <canvas id="chartPathogenEvolution"></canvas>
-                        </div>
+                        <div class="canvas-wrapper"><canvas id="chartPathogenEvolution"></canvas></div>
                     </div>
 
-                    <!-- Chart E: Riesgo por Matriz -->
-                    <div class="chart-card glass wide">
+                    <div class="chart-card wide">
                         <div class="chart-header">
                             <h3>E: Distribución de Focos de Riesgo por Matriz</h3>
+                            <button class="chart-expand-btn" onclick="expandChart('chartMatrixRisk','Focos de Riesgo por Matriz')" title="Expandir">
+                                <i data-lucide="maximize-2"></i>
+                            </button>
                         </div>
-                        <div class="canvas-wrapper">
-                            <canvas id="chartMatrixRisk"></canvas>
-                        </div>
+                        <div class="canvas-wrapper"><canvas id="chartMatrixRisk"></canvas></div>
                     </div>
                 </div>
             </section>
 
-            <!-- History View -->
+            <!-- ══════════════════════════════
+                 HISTORY VIEW
+                 ══════════════════════════════ -->
             <section id="view-history" class="view">
                 <div class="view-header">
                     <h2>Historial Completo</h2>
                     <p>Listado de todos los protocolos registrados bajo ISO 9001:2015.</p>
                 </div>
-                <div class="table-container glass">
-                    <div class="table-header">
-                        <div class="table-actions">
-                            <button class="btn btn-secondary" onclick="exportData()"><i data-lucide="download"></i> Exportar CSV</button>
-                            <button class="btn btn-secondary" onclick="exportToPDF('view-history', 'Historial_BioGuard')"><i data-lucide="file-text"></i> Exportar PDF</button>
+                <div class="table-container">
+                    <div class="table-container glass">
+                        <div class="table-header">
+                            <button class="btn btn-secondary btn-small" onclick="exportData()">
+                                <i data-lucide="download"></i> Exportar CSV
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="exportToPDF('view-history', 'Historial_BioGuard')">
+                                <i data-lucide="file-text"></i> Exportar PDF
+                            </button>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Protocolo</th>
+                                        <th>Tipo</th>
+                                        <th>Elemento</th>
+                                        <th>Microorganismo</th>
+                                        <th>Resultado</th>
+                                        <th>Unidad</th>
+                                        <th>Estado</th>
+                                        <th>Evidencia</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-results">
+                                    <!-- JS will populate -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Protocolo</th>
-                                <th>Tipo</th>
-                                <th>Elemento</th>
-                                <th>Microorganismo</th>
-                                <th>Resultado</th>
-                                <th>Unidad</th>
-                                <th>Estado</th>
-                                <th>Evidencia</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-results">
-                            <!-- JS will populate -->
-                        </tbody>
-                    </table>
                 </div>
             </section>
 
-            <!-- Register View -->
+            <!-- ══════════════════════════════
+                 REGISTER VIEW
+                 ══════════════════════════════ -->
             <section id="view-register" class="view">
                 <div class="view-header">
                     <h2>Nuevo Registro de Auditoría</h2>
+                    <p>Complete o importe desde PDF para registrar un análisis microbiológico.</p>
                 </div>
-                
+
                 <!-- PDF Upload Zone -->
-                <div class="pdf-upload-container glass" id="drop-zone">
+                <div class="pdf-upload-container" id="drop-zone" onclick="document.getElementById('pdf-input').click()">
                     <input type="file" id="pdf-input" accept="application/pdf" hidden>
-                    <div class="upload-content">
+                    <div class="upload-content" id="upload-content">
                         <i data-lucide="file-up" class="upload-icon"></i>
                         <h3 id="upload-title">Autocompletar con PDF</h3>
-                        <p id="upload-desc">Arrastra el reporte del laboratorio o haz clic aquí</p>
+                        <p id="upload-desc">Arrastrá el reporte del laboratorio o hacé clic aquí</p>
                     </div>
                     <div class="scan-overlay" id="scan-overlay">
                         <i data-lucide="scan-line" class="scanning-icon"></i>
@@ -546,16 +636,19 @@
                     </div>
                 </div>
 
-                <div class="form-container glass" id="main-form-wrapper">
-                    <div id="multi-sample-selector-container" class="form-group full-width hidden-form-group" style="grid-column: 1 / -1; margin-bottom: 15px; border-left: 4px solid #6366F1; padding: 12px; background: rgba(99,102,241,0.05); border-radius: 4px;">
-                        <label style="color: #6366F1; font-weight: bold;">Múltiples Muestras Detectadas en el PDF</label>
-                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">Por favor, revise cada uno de los formularios autogenerados a continuación correspondientes a las muestras detectadas.</p>
-                        <button type="button" class="btn btn-primary" style="margin-top: 15px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;" onclick="registerAllSamples()">
+                <div class="form-container" id="main-form-wrapper">
+                    <!-- Multi-sample selector -->
+                    <div id="multi-sample-selector-container" class="form-group full-width hidden-form-group"
+                         style="grid-column:1/-1;margin-bottom:15px;border-left:3px solid var(--accent);padding:12px 16px;background:var(--accent-dim);border-radius:var(--r-sm);">
+                        <label style="color:var(--accent-2);font-weight:700;font-size:0.875rem;">Múltiples Muestras Detectadas en el PDF</label>
+                        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px;">Revisá cada formulario autogenerado a continuación.</p>
+                        <button type="button" class="btn btn-primary" style="margin-top:12px;width:100%;display:flex;justify-content:center;align-items:center;gap:8px;" onclick="registerAllSamples()">
                             <i data-lucide="layers"></i> Registrar TODAS las muestras (Lote Completo)
                         </button>
                     </div>
-                    
+
                     <div id="multi-forms-container"></div>
+
                     <form id="audit-form">
                         <input type="hidden" id="vault-id">
                         <div class="form-grid">
@@ -577,127 +670,138 @@
                                     <option value="hisopado_manipulador">Hisopado Manipulador</option>
                                 </select>
                             </div>
-                            <!-- Zona y Desc comparten fila -->
                             <div id="zona-field-group" class="form-group hidden-form-group">
-                                <label for="zona-ambiental">Zona Ambiental (ISO 9001 - Criterio Débora)</label>
+                                <label for="zona-ambiental">Zona Ambiental (ISO 9001)</label>
                                 <select id="zona-ambiental">
-                                    <option value="" disabled selected>Seleccione la zona de origen...</option>
+                                    <option value="" disabled selected>Seleccione la zona...</option>
                                     <option value="zona1">Zona 1: Superficie de Trabajo (Arriba)</option>
-                                    <option value="zona2">Zona 2: Borde Inferior de Superficie de Trabajo</option>
+                                    <option value="zona2">Zona 2: Borde Inferior de Superficie</option>
                                     <option value="zona3">Zona 3: Patas de Mesada / Rejillas</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="form-grid">
-                            <div class="form-group full-width" style="grid-column: 1 / -1;">
+                            <div class="form-group full-width" style="grid-column:1/-1;">
                                 <label for="sample-desc">Descripción / Elemento</label>
-                                <input type="text" id="sample-desc" placeholder="Ej: Ensalada de lechuga" required>
+                                <input type="text" id="sample-desc" placeholder="Ej: Ensalada de lechuga cortada" required>
                             </div>
                         </div>
 
                         <div class="form-group full-width">
-                            <div class="matrix-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 16px;">
-                                <label style="margin: 0; font-size: 1.1rem;">Resultados Analíticos (Matriz de Ensayos)</label>
-                                <button type="button" class="btn btn-secondary" onclick="addManualAssay()" style="padding: 6px 12px; font-size: 0.9rem; margin:0">+ Agregar Ensayo Manual</button>
+                            <div class="matrix-header">
+                                <label style="margin:0;font-size:0.9rem;font-weight:700;color:var(--text-primary);">Resultados Analíticos (Matriz de Ensayos)</label>
+                                <button type="button" class="btn btn-secondary btn-small" onclick="addManualAssay()">
+                                    <i data-lucide="plus"></i> Agregar Ensayo
+                                </button>
                             </div>
-                            <div class="table-container">
+                            <div class="table-container" style="padding:0;border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;">
                                 <table class="matrix-table">
-                                    <thead style="background: rgba(255,255,255,0.05); text-align: left;">
+                                    <thead>
                                         <tr>
-                                            <th style="padding: 12px; font-weight: 500; color:var(--text-muted)">Parámetro (Microorganismo)</th>
-                                            <th style="padding: 12px; font-weight: 500; color:var(--text-muted); width: 20%;">Valor Hallado</th>
-                                            <th style="padding: 12px; font-weight: 500; color:var(--text-muted); width: 15%;">Unidad</th>
-                                            <th style="padding: 12px; font-weight: 500; color:var(--text-muted); width: 60px; text-align:center;">Acción</th>
+                                            <th>Parámetro (Microorganismo)</th>
+                                            <th style="width:22%;">Valor Hallado</th>
+                                            <th style="width:15%;">Unidad</th>
+                                            <th style="width:60px;text-align:center;">Acción</th>
                                         </tr>
                                     </thead>
                                     <tbody id="assay-matrix-body">
                                         <tr id="empty-matrix-row">
-                                            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px; font-style:italic">Extrae los datos desde un PDF o usa el botón agregar.</td>
+                                            <td colspan="4" style="text-align:center;color:var(--text-muted);padding:28px;font-style:italic;font-size:0.85rem;">
+                                                Extraé los datos desde un PDF o usá el botón "Agregar Ensayo".
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                            <div class="form-group full-width">
-                                <label for="notes">Plan de Acción / Observaciones</label>
-                                <textarea id="notes" rows="3" placeholder="Acciones correctivas si aplica..."></textarea>
-                            </div>
-                            <!-- Hidden input for file name evidence -->
-                            <input type="hidden" id="evidence-file" value="">
+
+                        <div class="form-group full-width" style="margin-top:1rem;">
+                            <label for="notes">Plan de Acción / Observaciones</label>
+                            <textarea id="notes" rows="3" placeholder="Acciones correctivas si aplica..."></textarea>
                         </div>
+
+                        <input type="hidden" id="evidence-file" value="">
+
                         <div class="form-footer">
-                            <button type="submit" class="btn btn-primary">Registrar Análisis</button>
+                            <button type="submit" class="btn btn-primary" id="btn-submit-audit">
+                                <i data-lucide="save"></i> Registrar Análisis
+                            </button>
                         </div>
                     </form>
                 </div>
             </section>
 
-            <!-- Users Management View (Admin Only) -->
+            <!-- ══════════════════════════════
+                 USERS VIEW (Admin Only)
+                 ══════════════════════════════ -->
             <section id="view-users" class="view">
                 <div class="view-header flex-header">
                     <div>
                         <h2>Gestión de Usuarios</h2>
-                        <p>Agregá y administrá el acceso al sistema PCCLAB.</p>
+                        <p>Administrá el acceso al sistema PCCLAB para tu organización.</p>
                     </div>
-                    <button class="btn btn-primary" onclick="openInviteModal()">
+                    <button class="btn btn-primary" onclick="openInviteModal()" id="btn-invite-user">
                         <i data-lucide="user-plus"></i> Invitar Usuario
                     </button>
                 </div>
-
-                <!-- User cards grid -->
                 <div id="users-grid" class="users-grid">
                     <div class="users-loading"><i data-lucide="loader"></i> Cargando usuarios...</div>
                 </div>
             </section>
+
         </main>
 
-        <!-- Mobile Bottom Navigation (Visible only on mobile) -->
-        <nav class="mobile-bottom-nav">
-            <a href="#dashboard" class="mobile-nav-item active">
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-bottom-nav" id="mobile-nav">
+            <a href="#dashboard" class="mobile-nav-item active" id="mnav-dashboard">
                 <i data-lucide="layout-dashboard"></i>
                 <span>Panel</span>
             </a>
-            <a href="#register" class="mobile-nav-item">
+            <a href="#register" class="mobile-nav-item" id="mnav-register">
                 <i data-lucide="plus-circle"></i>
                 <span>Cargar</span>
             </a>
-            <a href="#history" class="mobile-nav-item">
+            <a href="#trends" class="mobile-nav-item" id="mnav-trends">
+                <i data-lucide="trending-up"></i>
+                <span>Tendencias</span>
+            </a>
+            <a href="#history" class="mobile-nav-item" id="mnav-history">
                 <i data-lucide="history"></i>
                 <span>Historial</span>
-            </a>
-            <a href="#users" class="mobile-nav-item role-admin-only">
-                <i data-lucide="users"></i>
-                <span>Usuarios</span>
             </a>
         </nav>
     </div>
 
-    <!-- Invite User Modal -->
+    <!-- ══════════════════════════════
+         INVITE USER MODAL
+         ══════════════════════════════ -->
     <div id="invite-modal" class="modal-overlay hidden">
-        <div class="modal-card glass">
+        <div class="modal-card">
             <div class="modal-header">
                 <h3><i data-lucide="user-plus"></i> Nuevo Usuario</h3>
-                <button class="btn-icon" onclick="closeInviteModal()"><i data-lucide="x"></i></button>
+                <button class="btn-icon" onclick="closeInviteModal()" title="Cerrar">
+                    <i data-lucide="x"></i>
+                </button>
             </div>
             <div class="modal-body">
-                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">Los nuevos usuarios reciben una invitación por correo para configurar su contraseña.</p>
-                <div class="form-group form-group-login" style="margin-bottom: 1rem;">
+                <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1.25rem;">Los nuevos usuarios reciben una invitación por correo para configurar su contraseña.</p>
+                <div class="form-group-login">
                     <label>Nombre Completo</label>
                     <input type="text" id="invite-name" placeholder="Ej: María García">
                 </div>
-                <div class="form-group form-group-login" style="margin-bottom: 1rem;">
+                <div class="form-group-login">
                     <label>Correo Electrónico</label>
-                    <input type="email" id="invite-email" placeholder="usuario@pcclab.com">
+                    <input type="email" id="invite-email" placeholder="usuario@empresa.com">
                 </div>
-                <div class="form-group form-group-login" style="margin-bottom: 1rem;">
-                    <label>Empresa / Business Name</label>
-                    <input type="text" id="invite-business" placeholder="Ej: Octo Corp">
+                <div class="form-group-login">
+                    <label>Empresa / Organización</label>
+                    <input type="text" id="invite-business" placeholder="Ej: FlyKitchen S.A.">
                 </div>
-                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div class="form-group form-group-login">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                    <div class="form-group-login">
                         <label>Rol Octopus</label>
-                        <select id="invite-role" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; padding: 0.75rem 1rem;">
+                        <select id="invite-role" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);color:#fff;border-radius:var(--r-sm);padding:9px 12px;width:100%;font-family:'Inter',sans-serif;">
                             <option value="user">User (Básico)</option>
                             <option value="client">Client (Solo lectura)</option>
                             <option value="manager">Manager (Supervisor)</option>
@@ -706,29 +810,171 @@
                             <option value="admin">Admin (Total)</option>
                         </select>
                     </div>
-                    <div class="form-group form-group-login">
+                    <div class="form-group-login">
                         <label>Plan de Suscripción</label>
-                        <select id="invite-plan" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; padding: 0.75rem 1rem;">
+                        <select id="invite-plan" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);color:#fff;border-radius:var(--r-sm);padding:9px 12px;width:100%;font-family:'Inter',sans-serif;">
                             <option value="FREE">FREE</option>
                             <option value="PRO">PRO</option>
                         </select>
                     </div>
                 </div>
-                <div class="form-group form-group-login" style="margin-bottom: 1rem;">
+                <div class="form-group-login">
                     <label>Planta / Establecimiento</label>
                     <input type="text" id="invite-establishment" placeholder="Ej: Planta FlyKitchen">
                 </div>
-                <div id="invite-error" class="login-error hidden" style="margin-top: 1rem;"></div>
-                <div id="invite-success" class="invite-success hidden" style="margin-top: 1rem;"></div>
+                <div id="invite-error" class="login-error hidden" style="margin-top:1rem;"></div>
+                <div id="invite-success" class="invite-success hidden" style="margin-top:1rem;"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeInviteModal()">Cancelar</button>
                 <button class="btn btn-primary" onclick="inviteUser()" id="invite-btn">
-                    <i data-lucide="send"></i> Enviar Invitación Segura
+                    <i data-lucide="send"></i> Enviar Invitación
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- ══════════════════════════════
+         CHART EXPAND MODAL
+         ══════════════════════════════ -->
+    <div id="chart-expand-modal" class="chart-modal-overlay hidden">
+        <div class="chart-modal-card">
+            <div class="chart-modal-header">
+                <h3 id="chart-modal-title">Gráfico Expandido</h3>
+                <button class="btn-icon" onclick="closeExpandModal()" title="Cerrar">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="chart-modal-body" id="chart-modal-body">
+                <canvas id="chart-modal-canvas"></canvas>
+            </div>
+            <div class="chart-modal-footer">
+                <i data-lucide="info" style="width:15px;height:15px;"></i>
+                <span>Datos del período seleccionado. Hacé hover sobre el gráfico para ver detalles.</span>
+                <button class="btn btn-secondary btn-small" style="margin-left:auto;" onclick="closeExpandModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script>
+    // ═══════════════════════════════════════════════════════
+    //  CHART EXPAND / MODAL SYSTEM
+    // ═══════════════════════════════════════════════════════
+    let expandedChart = null;
+
+    window.expandChart = function(sourceCanvasId, title) {
+        const sourceCanvas = document.getElementById(sourceCanvasId);
+        if (!sourceCanvas) return;
+
+        const modal = document.getElementById('chart-expand-modal');
+        const modalTitle = document.getElementById('chart-modal-title');
+        const modalBody = document.getElementById('chart-modal-body');
+
+        // Destroy previous expanded chart
+        if (expandedChart) { expandedChart.destroy(); expandedChart = null; }
+
+        modalTitle.textContent = title;
+        modalBody.innerHTML = '<canvas id="chart-modal-canvas" style="max-height:480px;width:100%;"></canvas>';
+
+        // Get config from original chart
+        const originalChart = Object.values(Chart.instances || {}).find(c => c.canvas && c.canvas.id === sourceCanvasId);
+
+        if (originalChart) {
+            const newCtx = document.getElementById('chart-modal-canvas');
+            const cfg = JSON.parse(JSON.stringify(originalChart.config));
+            // Make it bigger
+            if (cfg.options) {
+                cfg.options.maintainAspectRatio = false;
+                if (!cfg.options.plugins) cfg.options.plugins = {};
+                if (!cfg.options.plugins.legend) cfg.options.plugins.legend = {};
+                cfg.options.plugins.legend.display = true;
+            }
+            expandedChart = new Chart(newCtx, cfg);
+        }
+
+        modal.classList.remove('hidden');
+        // Re-init lucide icons in modal
+        if (window.lucide) lucide.createIcons();
+    };
+
+    window.closeExpandModal = function() {
+        document.getElementById('chart-expand-modal').classList.add('hidden');
+        if (expandedChart) { expandedChart.destroy(); expandedChart = null; }
+    };
+
+    // Close modal on overlay click
+    document.getElementById('chart-expand-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeExpandModal();
+    });
+
+    // ═══════════════════════════════════════════════════════
+    //  SIDEBAR NAVIGATION EXTRAS
+    // ═══════════════════════════════════════════════════════
+    window.navigateToAlerts = function() {
+        // Navigate to history view filtered by errors
+        window.location.hash = '#history';
+        setTimeout(() => {
+            // Highlight errors
+            const errRows = document.querySelectorAll('#history-results tr');
+            errRows.forEach(row => {
+                const badge = row.querySelector('.badge-error');
+                if (badge) {
+                    row.style.background = 'rgba(239,68,68,0.04)';
+                    row.style.transition = 'background 0.5s';
+                }
+            });
+        }, 400);
+    };
+
+    window.navigateToReports = function() {
+        // Trigger the trends view which has the "Acta de Revisión" button
+        window.location.hash = '#trends';
+        setTimeout(() => {
+            const btn = document.querySelector('#view-trends .btn-primary');
+            if (btn) {
+                btn.style.animation = 'pulse 0.5s ease 2';
+                btn.focus();
+            }
+        }, 300);
+    };
+
+    window.handlePeriodChange = function() {
+        // Re-render dashboard with the selected period
+        if (typeof updateDashboard === 'function') updateDashboard();
+        if (typeof updateTrends === 'function') updateTrends();
+    };
+
+    // Update alert count badge in sidebar
+    function updateAlertBadge() {
+        const results = typeof getResults === 'function' ? getResults() : [];
+        const errorCount = results.filter(r => r.state === 'error').length;
+        const badge = document.getElementById('nav-alert-count');
+        if (badge) {
+            badge.textContent = errorCount;
+            badge.style.display = errorCount > 0 ? 'inline-flex' : 'none';
+        }
+    }
+
+    // Hook into dashboard updates to refresh alert badge
+    const _origUpdateDashboard = window.updateDashboard;
+    if (_origUpdateDashboard) {
+        window.updateDashboard = function(...args) {
+            _origUpdateDashboard.apply(this, args);
+            updateAlertBadge();
+        };
+    }
+
+    // Keyboard shortcut: Escape to close modals
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            closeExpandModal();
+            const inviteModal = document.getElementById('invite-modal');
+            if (inviteModal && !inviteModal.classList.contains('hidden')) {
+                if (typeof closeInviteModal === 'function') closeInviteModal();
+            }
+        }
+    });
+    </script>
 </body>
 </html>
