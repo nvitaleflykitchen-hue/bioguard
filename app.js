@@ -817,24 +817,8 @@ function updateDashboard() {
         }
     }
 
-    // 5. Update Evolution Chart
-    const chartContext = document.getElementById('trendChart');
-    if (chartContext) {
-        // Group results by date for the trend chart
-        const grouped = results.reduce((acc, r) => {
-            const d = r.date;
-            if (!acc[d]) acc[d] = { total: 0, errors: 0 };
-            acc[d].total++;
-            if (r.state === 'error') acc[d].errors++;
-            return acc;
-        }, {});
-        const chartData = Object.keys(grouped).sort().map(d => ({ 
-            date: d, 
-            value: grouped[d].total,
-            errors: grouped[d].errors
-        }));
-        renderChart('trendChart', chartData.slice(-10));
-    }
+    // 5. Update Evolution Chart — ISO Microbiological Control Chart
+    renderControlChart('trendChart', results);
 }
 
 function renderComplianceDonut(apto, obs, danger) {
@@ -998,74 +982,270 @@ function createChartGradient(ctx, color) {
     return gradient;
 }
 
-function renderChart(canvasId, data) {
+// ─────────────────────────────────────────────────────────────
+// MICROBIOLOGICAL CONTROL CHART — ISO 9001 / IRAM-NM 323
+// Replaces the old renderChart() with full scientific display:
+// colored points, reference lines, background zones, rich tooltips
+// ─────────────────────────────────────────────────────────────
+
+// Criteria table: organism → { m (alert), M (max), unit, label }
+const MICRO_CRITERIA = {
+    aerobios:      { m: 100000, M: 1000000, unit: 'UFC/g',         label: 'Aerobios Totales' },
+    coliformes:    { m: 10,     M: 100,     unit: 'UFC/g',         label: 'Coliformes Totales' },
+    ecoli:         { m: 0,      M: 10,      unit: 'UFC/g',         label: 'E. coli' },
+    ecoli157:      { m: 0,      M: 0,       unit: 'UFC/25g',       label: 'E. coli O157:H7' },
+    salmonella:    { m: 0,      M: 0,       unit: 'ausencia/25g',  label: 'Salmonella spp.' },
+    staphylococcus:{ m: 100,    M: 1000,    unit: 'UFC/g',         label: 'Staph. aureus' },
+    listeria:      { m: 0,      M: 0,       unit: 'ausencia/25g',  label: 'Listeria m.' },
+    clostridium:   { m: 10,     M: 100,     unit: 'UFC/g',         label: 'Clostridium p.' },
+    bacillus:      { m: 100,    M: 1000,    unit: 'UFC/g',         label: 'Bacillus cereus' },
+    anaerobios:    { m: 10,     M: 100,     unit: 'UFC/g',         label: 'Anaerobios S.R.' },
+};
+
+function getPointColor(state) {
+    if (state === 'success') return '#10b981';
+    if (state === 'obs')     return '#f59e0b';
+    if (state === 'error')   return '#ef4444';
+    return '#64748b';
+}
+
+function renderControlChart(canvasId, allResults) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
-    const isDeviations = data.length > 0 && data[0].type === 'deviations';
-    
-    const labels = sortedData.length ? sortedData.map(d => new Date(d.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })) : ['Sin Datos'];
-    const values = sortedData.length ? sortedData.map(d => d.value) : [0];
 
-    // Determine scale dynamically based on amplitude
-    const maxVal = Math.max(...values, 0);
-    const useLogScale = maxVal > 100000;
+    // ── 1. Filter: only aerobios with numeric values, sorted by date ──
+    const aerobiosResults = allResults
+        .filter(r => r.organism === 'aerobios' && r.value != null && !isNaN(r.value))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    if (charts[canvasId]) charts[canvasId].destroy();
+    // Fallback: if no aerobios data, show any numeric organism
+    const working = aerobiosResults.length > 0
+        ? aerobiosResults
+        : allResults
+            .filter(r => r.value != null && !isNaN(r.value) && r.value > 0)
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    const primaryColor = isDeviations ? 'rgba(239, 68, 68, 1)' : 'rgba(99, 102, 241, 1)';
-    const gradient = createChartGradient(ctx, primaryColor);
+    const organism = working.length > 0 ? (working[0].organism || 'aerobios') : 'aerobios';
+    const criteria = MICRO_CRITERIA[organism];
+    const hasCriteria = criteria && (criteria.m > 0 || criteria.M > 0);
+    const unit = (working.length > 0 && working[0].unit) ? working[0].unit
+               : (criteria ? criteria.unit : 'UFC/g');
 
-    charts[canvasId] = new Chart(ctx, {
-        type: isDeviations ? 'bar' : 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: isDeviations ? 'Desvíos Detectados' : 'Carga (UFC)',
-                data: values,
-                borderColor: isDeviations ? '#EF4444' : '#6366F1',
-                backgroundColor: gradient,
-                borderWidth: 3,
-                tension: 0.35,
-                fill: true,
-                pointRadius: isDeviations ? 0 : 5,
-                pointHoverRadius: 8,
-                pointBackgroundColor: isDeviations ? '#EF4444' : '#6366F1',
-                pointBorderColor: '#0B0E14',
-                pointBorderWidth: 2,
-            }]
-        },
+    // ── 2. Build deduplicated X-axis labels (date + index if repeated) ──
+    const labels = [];
+    const seenDates = {};
+    working.forEach(r => {
+        const dateStr = new Date(r.date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        if (!seenDates[dateStr]) {
+            seenDates[dateStr] = 0;
+            labels.push(dateStr);
+        } else {
+            seenDates[dateStr]++;
+            labels.push(dateStr + ' (' + seenDates[dateStr] + ')');
+        }
+    });
+
+    const values    = working.map(r => r.value);
+    const colors    = working.map(r => getPointColor(r.state));
+    const protocols = working.map(r => r.protocol || '—');
+    const samples   = working.map(r => r.sample || '—');
+    const rawVals   = working.map(r => r.rawValue || String(r.value));
+    const units     = working.map(r => r.unit || unit);
+    const states    = working.map(r => r.state);
+
+    // ── 3. Determine Y scale ──
+    const maxVal = Math.max(...values, hasCriteria ? criteria.M * 1.5 : 0, 1);
+    const useLog = maxVal > 10000;
+
+    // ── 4. Destroy previous instance ──
+    if (charts[canvasId]) { charts[canvasId].destroy(); }
+
+    // ── 5. Background plugin: colored zones ──
+    const bgZonesPlugin = {
+        id: 'bgZones',
+        beforeDraw(chart) {
+            if (!hasCriteria) return;
+            const { ctx: c, chartArea: { top, bottom, left, right }, scales } = chart;
+            const yScale = scales.y;
+            if (!yScale) return;
+
+            const yM = yScale.getPixelForValue(criteria.M);
+            const ym = yScale.getPixelForValue(criteria.m);
+            const yT = top;
+            const yB = bottom;
+
+            // Red zone: above M
+            c.fillStyle = 'rgba(239,68,68,0.06)';
+            c.fillRect(left, yT, right - left, Math.max(0, yM - yT));
+
+            // Yellow zone: between m and M
+            c.fillStyle = 'rgba(245,158,11,0.06)';
+            c.fillRect(left, yM, right - left, Math.max(0, ym - yM));
+
+            // Green zone: below m
+            c.fillStyle = 'rgba(16,185,129,0.06)';
+            c.fillRect(left, ym, right - left, Math.max(0, yB - ym));
+        }
+    };
+
+    // ── 6. Build datasets ──
+    const datasets = [];
+
+    // Main data line
+    datasets.push({
+        label: criteria ? criteria.label : 'Carga Microbiológica',
+        data: working.length ? values : [],
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99,102,241,0.05)',
+        borderWidth: 2,
+        tension: 0.35,
+        fill: true,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        pointBackgroundColor: colors,
+        pointBorderColor: colors.map(c => c + 'cc'),
+        pointBorderWidth: 2,
+        order: 3,
+    });
+
+    // Reference line: alert (m)
+    if (hasCriteria && criteria.m > 0) {
+        datasets.push({
+            label: `Alerta (m = ${formatNumber(criteria.m)} ${unit})`,
+            data: labels.map(() => criteria.m),
+            borderColor: '#f59e0b',
+            borderWidth: 1.5,
+            borderDash: [6, 4],
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+            order: 2,
+        });
+    }
+
+    // Reference line: limit (M)
+    if (hasCriteria && criteria.M > 0) {
+        datasets.push({
+            label: `Límite Máx. (M = ${formatNumber(criteria.M)} ${unit})`,
+            data: labels.map(() => criteria.M),
+            borderColor: '#ef4444',
+            borderWidth: 1.5,
+            borderDash: [3, 3],
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+            order: 1,
+        });
+    }
+
+    // ── 7. Subtitle text ──
+    const subtitleLines = hasCriteria
+        ? [`Parámetro: ${criteria.label} | Unidad: ${unit} | Criterio: m=${formatNumber(criteria.m)} / M=${formatNumber(criteria.M)}`]
+        : ['Sin criterio cargado para este parámetro — mostrando evolución histórica'];
+
+    // ── 8. Build chart ──
+    charts[canvasId] = new Chart(canvas, {
+        type: 'line',
+        plugins: [bgZonesPlugin],
+        data: { labels: working.length ? labels : ['Sin datos'], datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { 
-                legend: { display: false },
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: { color: '#64748b', font: { size: 10 }, usePointStyle: true, boxWidth: 20, padding: 12 }
+                },
+                subtitle: {
+                    display: true,
+                    text: subtitleLines,
+                    color: '#475569',
+                    font: { size: 10 },
+                    padding: { bottom: 6 }
+                },
                 tooltip: {
+                    backgroundColor: 'rgba(8,12,24,0.97)',
+                    borderColor: 'rgba(255,255,255,0.08)',
+                    borderWidth: 1,
+                    titleColor: '#f8fafc',
+                    bodyColor: '#94a3b8',
+                    padding: 14,
+                    cornerRadius: 10,
                     callbacks: {
-                        label: function(context) {
-                            return isDeviations ? ` ${context.raw} desvíos` : ` ${formatNumber(context.raw)} UFC`;
+                        title: (items) => {
+                            const i = items[0].dataIndex;
+                            return labels[i] || '';
+                        },
+                        beforeBody: (items) => {
+                            const i = items[0].dataIndex;
+                            return [
+                                `Protocolo: ${protocols[i]}`,
+                                `Muestra: ${samples[i]}`,
+                            ];
+                        },
+                        label: (item) => {
+                            if (item.datasetIndex !== 0) {
+                                // Reference lines
+                                return item.dataset.label;
+                            }
+                            const i = item.dataIndex;
+                            const st = states[i];
+                            const stLabel = st === 'success' ? '✅ APTO'
+                                         : st === 'error'   ? '🔴 FUERA DE RANGO'
+                                         : st === 'obs'     ? '🟡 OBSERVADO'
+                                         : '⚪ Sin criterio';
+                            const lines = [
+                                `Valor: ${rawVals[i]} ${units[i]}`,
+                            ];
+                            if (hasCriteria) {
+                                if (criteria.m > 0) lines.push(`Alerta (m): ${formatNumber(criteria.m)} ${unit}`);
+                                if (criteria.M > 0) lines.push(`Límite máx (M): ${formatNumber(criteria.M)} ${unit}`);
+                            } else {
+                                lines.push('Sin criterio de referencia');
+                            }
+                            lines.push(`Estado: ${stLabel}`);
+                            return lines;
+                        },
+                        labelColor: (item) => {
+                            if (item.datasetIndex !== 0) return { borderColor: 'transparent', backgroundColor: 'transparent' };
+                            const i = item.dataIndex;
+                            const c = getPointColor(states[i]);
+                            return { borderColor: c, backgroundColor: c, borderRadius: 3 };
                         }
                     }
                 }
             },
             scales: {
-                y: { 
-                    type: useLogScale ? 'logarithmic' : 'linear',
-                    beginAtZero: !useLogScale, 
-                    grid: { color: 'rgba(255, 255, 255, 0.03)' }, 
-                    ticks: { 
-                        color: '#64748B',
-                        callback: function(value) {
-                            return formatNumber(value);
-                        }
-                    } 
+                y: {
+                    type: useLog ? 'logarithmic' : 'linear',
+                    beginAtZero: !useLog,
+                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    ticks: {
+                        color: '#64748b',
+                        callback: v => formatNumber(v)
+                    },
+                    title: {
+                        display: true,
+                        text: unit,
+                        color: '#475569',
+                        font: { size: 10 }
+                    }
                 },
-                x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 10 } } }
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 45 }
+                }
             }
         }
     });
+}
+
+// Keep a stub for backward compatibility (Trends view may still call it)
+function renderChart(canvasId, data) {
+    // No longer used for dashboard — kept for safety
+    renderControlChart(canvasId, data);
 }
 
 function updateTrends() {
