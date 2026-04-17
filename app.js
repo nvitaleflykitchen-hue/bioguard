@@ -402,7 +402,7 @@ window.inviteUser = async function() {
     const role = document.getElementById('invite-role').value;
     const plan = document.getElementById('invite-plan').value;
     const establishment = document.getElementById('invite-establishment').value.trim();
-    
+
     const errEl = document.getElementById('invite-error');
     const successEl = document.getElementById('invite-success');
     const btn = document.getElementById('invite-btn');
@@ -411,7 +411,7 @@ window.inviteUser = async function() {
     successEl.classList.add('hidden');
 
     if (!name || !email) {
-        errEl.textContent = 'Completá nombre y correo.';
+        errEl.textContent = 'Completá nombre y correo electrónico.';
         errEl.classList.remove('hidden');
         return;
     }
@@ -419,15 +419,28 @@ window.inviteUser = async function() {
     btn.disabled = true;
     btn.innerHTML = '<span>Procesando...</span>';
 
-    const tempPass = Math.random().toString(36).slice(-10) + 'Aa1!';
+    // Redirect always to Vercel production, never localhost
+    const appUrl = window.location.hostname === 'localhost'
+        ? window.location.origin
+        : 'https://bioguard-tau.vercel.app';
+
+    const tempPass = Math.random().toString(36).slice(-8) + 'Aa1!';
+
     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
         email: email,
         password: tempPass,
-        options: { data: { full_name: name } }
+        options: {
+            data: { full_name: name },
+            emailRedirectTo: appUrl + '/#dashboard'
+        }
     });
 
     if (authError) {
-        errEl.textContent = 'Error: ' + authError.message;
+        let msg = 'Error: ' + authError.message;
+        if (authError.message.toLowerCase().includes('already registered')) {
+            msg = '⚠️ Este correo ya está registrado en el sistema.';
+        }
+        errEl.textContent = msg;
         errEl.classList.remove('hidden');
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="send"></i> Enviar Invitación Segura';
@@ -436,7 +449,7 @@ window.inviteUser = async function() {
     }
 
     if (authData.user) {
-        await supabaseClient.from('usuarios').insert({
+        const { error: profileErr } = await supabaseClient.from('usuarios').insert({
             id: authData.user.id,
             full_name: name,
             role: role,
@@ -445,9 +458,18 @@ window.inviteUser = async function() {
             establishment: establishment || 'Planta Principal',
             permissions: role === 'consultant' || role === 'admin' ? ['all'] : []
         });
+        if (profileErr) console.warn('Profile insert warning:', profileErr.message);
     }
 
-    successEl.innerHTML = `✅ Invitación enviada.<br><strong>Pass temporal:</strong> <code>${tempPass}</code>`;
+    successEl.innerHTML = `
+        ✅ <strong>Invitación enviada a ${email}</strong><br>
+        <span style="font-size:0.82rem;color:#94a3b8;">
+            El usuario recibirá un email. Al confirmar, será redirigido a la app.<br>
+            Se creará su cuenta con los permisos de <strong>${role.toUpperCase()}</strong>.
+        </span><br><br>
+        <span style="font-size:0.78rem;color:#64748b;">Contraseña temporal (si el mail demora):</span><br>
+        <code style="color:#a78bfa;font-size:0.85rem;">${tempPass}</code>
+    `;
     successEl.classList.remove('hidden');
     btn.disabled = false;
     btn.innerHTML = '<i data-lucide="send"></i> Enviar Invitación Segura';
