@@ -319,48 +319,83 @@ async function loadUsersView() {
     if (!isAdminMode || !supabaseClient) return;
     const grid = document.getElementById('users-grid');
     if (!grid) return;
-    grid.innerHTML = '<div class="users-loading"><span>Cargando usuarios...</span></div>';
-
-    const { data, error } = await supabaseClient
-        .from('usuarios')
-        .select('*');
-
-    if (error || !data) {
-        grid.innerHTML = '<div class="users-loading">Error cargando usuarios.</div>';
-        return;
-    }
-
-    grid.innerHTML = data.map(u => {
-        const parts = (u.full_name || '?').trim().split(' ');
-        let initials = parts[0].charAt(0).toUpperCase();
-        if (parts[1]) initials += parts[1].charAt(0).toUpperCase();
-        const isCurrentUser = currentUser && u.id === currentUser.id;
-        const planClass = u.plan === 'PRO' ? 'pro-user' : 'free-user';
-        
-        return `
-        <div class="user-card ${planClass}">
-            <div class="user-card-header">
-                <div class="user-card-avatar">${initials}</div>
-                <div class="user-card-info">
-                    <div class="user-card-name">${u.full_name} ${isCurrentUser ? '<span style="font-size:0.7rem;color:var(--accent)">(vos)</span>' : ''}</div>
-                    <div class="user-card-email">${u.business_name || 'Sin Empresa'} | ${u.plan || 'FREE'}</div>
-                </div>
-            </div>
-            <div class="user-card-actions">
-                <select class="role-select-inline" onchange="updateUserRole('${u.id}', this.value)" ${isCurrentUser ? 'disabled' : ''}>
-                    <option value="user" ${u.role==='user'?'selected':''}>User</option>
-                    <option value="client" ${u.role==='client'?'selected':''}>Client</option>
-                    <option value="manager" ${u.role==='manager'?'selected':''}>Manager</option>
-                    <option value="auditor" ${u.role==='auditor'?'selected':''}>Auditor</option>
-                    <option value="consultant" ${u.role==='consultant'?'selected':''}>Consultant</option>
-                    <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-                    <option value="developer" ${u.role==='developer'?'selected':''}>Developer</option>
-                </select>
-                ${!isCurrentUser ? `<button class="btn btn-small btn-delete-user" onclick="deleteUserProfile('${u.id}', '${u.full_name}')">Quitar</button>` : ''}
-            </div>
-        </div>`;
-    }).join('');
+    grid.innerHTML = '<div class="users-loading"><i data-lucide="loader" class="spin"></i><span>Cargando usuarios Octopus...</span></div>';
     lucide.createIcons();
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('usuarios')
+            .select('*')
+            .order('full_name', { ascending: true });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state-container" style="grid-column: 1/-1; text-align: center; padding: 4rem 2rem; background: rgba(255,255,255,0.02); border-radius: var(--r-xl); border: 1px dashed var(--border);">
+                    <i data-lucide="users" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 1.5rem;"></i>
+                    <h3 style="color: #fff; margin-bottom: 0.5rem;">No hay usuarios registrados</h3>
+                    <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 2rem;">Aún no has invitado a nadie a tu organización. Los usuarios que invites aparecerán aquí.</p>
+                    <button class="btn btn-primary" onclick="openInviteModal()">
+                        <i data-lucide="user-plus"></i> Invitar Primer Usuario
+                    </button>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        grid.innerHTML = data.map(u => {
+            const parts = (u.full_name || '?').trim().split(' ');
+            let initials = parts[0].charAt(0).toUpperCase();
+            if (parts[1]) initials += parts[1].charAt(0).toUpperCase();
+            const isCurrentUser = currentUser && u.id === currentUser.id;
+            const planClass = u.plan === 'PRO' ? 'pro-user' : 'free-user';
+            
+            return `
+            <div class="user-card ${planClass}">
+                <div class="user-card-header">
+                    <div class="user-card-avatar">${initials}</div>
+                    <div class="user-card-info">
+                        <div class="user-card-name">
+                            ${u.full_name} 
+                            ${isCurrentUser ? '<span class="self-badge" style="font-size:0.6rem; background:var(--accent); color:white; padding:2px 6px; border-radius:4px; margin-left:5px;">VOS</span>' : ''}
+                        </div>
+                        <div class="user-card-email">${u.business_name || 'Sin Empresa Definida'}</div>
+                    </div>
+                </div>
+                <div class="user-card-body" style="margin-bottom: 1rem;">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Nivel Octopus</span>
+                        <span class="user-role-tag" style="font-size:0.7rem; color:var(--accent-2); font-weight:700;">${(u.role || 'user').toUpperCase()}</span>
+                    </div>
+                    <select class="role-select-inline" onchange="updateUserRole('${u.id}', this.value)" ${isCurrentUser ? 'disabled' : ''}>
+                        <option value="user" ${u.role==='user'?'selected':''}>User (Básico)</option>
+                        <option value="client" ${u.role==='client'?'selected':''}>Client (Solo Lectura)</option>
+                        <option value="manager" ${u.role==='manager'?'selected':''}>Manager (Supervisor)</option>
+                        <option value="auditor" ${u.role==='auditor'?'selected':''}>Auditor (Calidad)</option>
+                        <option value="consultant" ${u.role==='consultant'?'selected':''}>Consultant (Experto)</option>
+                        <option value="admin" ${u.role==='admin'?'selected':''}>Admin (Control Total)</option>
+                        <option value="developer" ${u.role==='developer'?'selected':''}>Developer</option>
+                    </select>
+                </div>
+                <div class="user-card-actions">
+                    <button class="btn btn-secondary btn-small" onclick="resetUserPassword('${u.id}')" title="Restablecer Contraseña">
+                        <i data-lucide="key"></i> Clave
+                    </button>
+                    ${!isCurrentUser ? `
+                    <button class="btn btn-error btn-small btn-delete-user" onclick="deleteUserProfile('${u.id}', '${u.full_name}')" style="margin-left: auto;">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                    ` : ''}
+                </div>
+            </div>`;
+        }).join('');
+        lucide.createIcons();
+    } catch (e) {
+        console.error("Error cargando usuarios:", e);
+        grid.innerHTML = '<div class="users-loading">Error al conectar con la base de datos de usuarios.</div>';
+    }
 }
 
 window.updateUserRole = async function(userId, newRole) {
@@ -451,6 +486,7 @@ window.inviteUser = async function() {
     if (authData.user) {
         const { error: profileErr } = await supabaseClient.from('usuarios').insert({
             id: authData.user.id,
+            email: email, // Store email for easier management
             full_name: name,
             role: role,
             business_name: business || 'Empresa Independiente',
@@ -474,7 +510,40 @@ window.inviteUser = async function() {
     btn.disabled = false;
     btn.innerHTML = '<i data-lucide="send"></i> Enviar Invitación Segura';
     lucide.createIcons();
-    setTimeout(() => loadUsersView(), 1500);
+    setTimeout(() => { if (typeof loadUsersView === "function") loadUsersView(); }, 1500);
+};
+
+window.resetUserPassword = async function(userId) {
+    if (!supabaseClient) return;
+    
+    // First, we need the email. Let's try to get it from our 'usuarios' table
+    const { data: profile } = await supabaseClient
+        .from('usuarios')
+        .select('email, full_name')
+        .eq('id', userId)
+        .single();
+        
+    const email = profile?.email;
+    const name = profile?.full_name || "usuario";
+
+    if (!email) {
+        alert("No se encontró el correo electrónico para este usuario. Ingrese el mail manualmente si lo conoce.");
+        const manualEmail = prompt(`Ingresá el mail de ${name} para enviar el reset:`);
+        if (!manualEmail) return;
+        sendReset(manualEmail);
+    } else {
+        if (confirm(`¿Enviar un email de restablecimiento de contraseña a ${email}?`)) {
+            sendReset(email);
+        }
+    }
+
+    async function sendReset(emailToReset) {
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(emailToReset, {
+            redirectTo: window.location.origin + '/#dashboard',
+        });
+        if (error) alert("Error: " + error.message);
+        else alert("✅ Email de restablecimiento enviado con éxito.");
+    }
 };
 
 window.logoutSupabase = async function() {
@@ -877,9 +946,21 @@ function formatNumber(num) {
 }
 
 function updateHistory() {
-    const results = getResults();
+    let results = getResults();
+    const searchInput = document.getElementById('history-search');
+    const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    
     const tbody = document.getElementById('history-results');
     if (!tbody) return;
+    
+    if (term) {
+        results = results.filter(r => 
+            r.protocol?.toLowerCase().includes(term) ||
+            r.sample?.toLowerCase().includes(term) ||
+            formatType(r.type)?.toString().toLowerCase().includes(term) ||
+            formatOrganism(r.organism)?.toString().toLowerCase().includes(term)
+        );
+    }
     
     tbody.innerHTML = '';
     
@@ -964,7 +1045,14 @@ window.editResult = function(protocol, date) {
 let formIsEditing = null;
 
 function formatType(type) {
-    const types = { 'alimento': 'Alimento', 'hisopado_superficie': 'Superficie', 'hisopado_manipulador': 'Manipulador' };
+    const types = { 
+        'alimento': 'Alimento', 
+        'alimento_t1': 'Alimento T1', 
+        'alimento_t2': 'Alimento T2',
+        'alimento_t3': 'Alimento T3',
+        'hisopado_superficie': 'Superficie', 
+        'hisopado_manipulador': 'Manipulador' 
+    };
     return types[type] || type;
 }
 
@@ -1461,16 +1549,17 @@ function renderChartD_PathogenEvolution(data) {
     });
 }
 
-// Chart E: Riesgo por Matriz (Stacked 100%)
+// Chart E: Riesgo por Matriz (Stacked bar)
 function renderChartE_MatrixRisk(data) {
     const canvas = document.getElementById('chartMatrixRisk');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
     const matrices = ['alimento_t1', 'alimento_t2', 'alimento_t3', 'hisopado_superficie', 'hisopado_manipulador'];
-    const matrixLabels = ['Alimento T1', 'Alimento T2', 'Alimento T3', 'Superficies', 'Manipuladores'];
+    const matrixLabels = ['Alimento T1', 'Alimento T2', 'Alimento Tipo 3', 'Superficie', 'Hisopado Manos'];
     
     const successData = matrices.map(m => data.filter(d => d.type === m && d.state === 'success').length);
+    const obsData = matrices.map(m => data.filter(d => d.type === m && d.state === 'obs').length);
     const errorData = matrices.map(m => data.filter(d => d.type === m && d.state === 'error').length);
 
     if (charts['chartMatrixRisk']) charts['chartMatrixRisk'].destroy();
@@ -1480,6 +1569,7 @@ function renderChartE_MatrixRisk(data) {
             labels: matrixLabels,
             datasets: [
                 { label: 'CUMPLE', data: successData, backgroundColor: '#10B981BB' },
+                { label: 'OBSERVADO', data: obsData, backgroundColor: '#F59E0BBB' },
                 { label: 'NO CUMPLE', data: errorData, backgroundColor: '#EF4444BB' }
             ]
         },
@@ -1487,9 +1577,21 @@ function renderChartE_MatrixRisk(data) {
             responsive: true, maintainAspectRatio: false,
             scales: {
                 x: { stacked: true, ticks: { color: '#64748B' } },
-                y: { stacked: true, beginAtZero: true, ticks: { color: '#64748B' } }
+                y: { stacked: true, beginAtZero: true, ticks: { color: '#64748B', precision: 0 } }
             },
-            plugins: { legend: { position: 'top', labels: { color: '#94A3B8' } } }
+            plugins: { 
+                legend: { position: 'top', labels: { color: '#94A3B8', boxWidth: 12, padding: 15 } },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) label += context.parsed.y;
+                            return label;
+                        }
+                    }
+                }
+            }
         }
     });
 }

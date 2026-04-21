@@ -776,8 +776,52 @@ select option {
 .table-header {
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border);
-    display: flex; justify-content: flex-end;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.table-search-box {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.table-search-box i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+    height: 15px;
+    color: var(--text-muted);
+}
+
+.table-search-box input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 8px 12px 8px 36px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+}
+
+.table-search-box input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 0 12px rgba(99,102,241,0.2);
+}
+
+.header-actions-group {
+    display: flex;
     gap: 8px;
+    align-items: center;
 }
 .table-container.glass table {
     width: 100%; border-collapse: collapse;
@@ -922,7 +966,29 @@ select option {
     font-size: 0.82rem; font-family: 'Inter', sans-serif;
 }
 .btn-delete-user { padding: 6px 12px; font-size: 0.78rem; white-space: nowrap; }
-.users-loading { color: var(--text-muted); padding: 2rem; text-align: center; grid-column: 1 / -1; }
+.users-loading { color: var(--text-muted); padding: 5rem 2rem; text-align: center; grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.users-loading span { font-size: 0.9rem; font-weight: 500; }
+
+.spin { animation: octopus-spin 1.5s linear infinite; }
+@keyframes octopus-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.self-badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+}
+
+.empty-state-container i { opacity: 0.5; }
+.empty-state-container h3 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
+
 
 /* ── MODALS ── */
 .modal-overlay {

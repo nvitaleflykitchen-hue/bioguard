@@ -41,7 +41,7 @@
             <!-- Left Branding Side -->
             <div class="login-branding-side">
                 <div class="brand-content">
-                    <img src="LOGO PCCLAB.png" alt="PCCLAB Logo" class="brand-logo-large">
+                    <img src="assets/LOGO PCCLAB.png" alt="PCCLAB Logo" class="brand-logo-large">
                     <h1 class="brand-title">PCCLAB <span>Security</span></h1>
                     <p class="brand-subtitle">Sistema Operativo Bromatológico — ISO 9001:2015</p>
 
@@ -75,7 +75,7 @@
             <div class="login-form-side">
                 <div class="login-card-premium">
                     <div class="login-header-mobile">
-                        <img src="LOGO PCCLAB.png" alt="PCCLAB Logo" class="login-logo-mobile">
+                        <img src="assets/LOGO PCCLAB.png" alt="PCCLAB Logo" class="login-logo-mobile">
                     </div>
                     <h2>Ingreso Segurizado</h2>
                     <p class="login-desc">Acceda al ecosistema central de calidad bromatológica.</p>
@@ -112,7 +112,7 @@
         <!-- ── SIDEBAR ── -->
         <aside class="sidebar" id="app-sidebar">
             <div class="sidebar-header">
-                <img src="LOGO PCCLAB.png" alt="PCCLAB" class="sidebar-logo-img">
+                <img src="assets/LOGO PCCLAB.png" alt="PCCLAB" class="sidebar-logo-img">
             </div>
 
             <nav class="sidebar-nav">
@@ -581,12 +581,18 @@
                 <div class="table-container">
                     <div class="table-container glass">
                         <div class="table-header">
-                            <button class="btn btn-secondary btn-small" onclick="exportData()">
-                                <i data-lucide="download"></i> Exportar CSV
-                            </button>
-                            <button class="btn btn-secondary btn-small" onclick="exportToPDF('view-history', 'Historial_BioGuard')">
-                                <i data-lucide="file-text"></i> Exportar PDF
-                            </button>
+                            <div class="table-search-box">
+                                <i data-lucide="search"></i>
+                                <input type="text" id="history-search" placeholder="Buscar por protocolo, muestra o matriz..." oninput="updateHistory()">
+                            </div>
+                            <div class="header-actions-group">
+                                <button class="btn btn-secondary btn-small" onclick="exportData()">
+                                    <i data-lucide="download"></i> Exportar CSV
+                                </button>
+                                <button class="btn btn-secondary btn-small" onclick="exportToPDF('view-history', 'Historial_BioGuard')">
+                                    <i data-lucide="file-text"></i> Exportar PDF
+                                </button>
+                            </div>
                         </div>
                         <div style="overflow-x:auto;">
                             <table>
@@ -741,13 +747,19 @@
                         <h2>Gestión de Usuarios</h2>
                         <p>Administrá el acceso al sistema PCCLAB para tu organización.</p>
                     </div>
-                    <button class="btn btn-primary" onclick="openInviteModal()" id="btn-invite-user">
-                        <i data-lucide="user-plus"></i> Invitar Usuario
-                    </button>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="loadUsersView()" title="Actualizar lista">
+                            <i data-lucide="refresh-cw"></i>
+                        </button>
+                        <button class="btn btn-primary" onclick="openInviteModal()" id="btn-invite-user">
+                            <i data-lucide="user-plus"></i> Invitar Usuario
+                        </button>
+                    </div>
                 </div>
                 <div id="users-grid" class="users-grid">
-                    <div class="users-loading"><i data-lucide="loader"></i> Cargando usuarios...</div>
+                    <div class="users-loading"><i data-lucide="loader" class="spin"></i> Cargando usuarios...</div>
                 </div>
+
             </section>
 
         </main>
