@@ -1557,12 +1557,29 @@ function renderChartE_MatrixRisk(data) {
 
     const matrixLabels = ['Alimento T1', 'Alimento T2', 'Alimento T3', 'Superficies', 'Manipuladores'];
     
-    // Función robusta que usa la misma lógica que la tabla del historial
+    // Función ultra-robusta: busca coincidencias por campo tipo, descripción o palabras clave
     const filterByLabel = (label, state) => {
+        const target = label.toLowerCase().trim();
+        
         return data.filter(d => {
-            const currentLabel = formatType(d.type);
-            // Coincidencia exacta con lo que el usuario ve en la columna "TIPO"
-            if (currentLabel !== label) return false;
+            const rawType = (d.type || '').toLowerCase().trim();
+            const rawSample = (d.sample || '').toLowerCase();
+            const currentLabel = formatType(d.type).toLowerCase().trim();
+            
+            let isMatch = (currentLabel === target);
+            
+            // Fallbacks de emergencia si el dato fue mal clasificado al guardar
+            if (!isMatch) {
+                if (target.includes('superficie')) {
+                    isMatch = rawType.includes('superficie') || rawSample.includes('mesada') || rawSample.includes('tabla') || d.zona;
+                } else if (target.includes('manipulador')) {
+                    isMatch = rawType.includes('manos') || rawType.includes('manipulador') || rawSample.includes('manos');
+                } else if (target === 'alimento t1' && (rawType === 'alimento' || (rawType === '' && !rawSample.includes('mesada')))) {
+                    isMatch = true;
+                }
+            }
+            
+            if (!isMatch) return false;
             
             const currentState = d.state || 'success';
             if (state === 'success') return currentState === 'success';
@@ -1607,6 +1624,12 @@ function renderChartE_MatrixRisk(data) {
                 }
             }
         }
+    });
+
+    console.log("BioGuard Trends Debug:", {
+        labels: matrixLabels,
+        success: successData,
+        sourceCount: data.length
     });
 }
 
