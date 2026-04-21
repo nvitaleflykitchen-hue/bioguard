@@ -1549,7 +1549,7 @@ function renderChartD_PathogenEvolution(data) {
     });
 }
 
-// Chart E: Riesgo por Matriz (Stacked bar)
+// Chart E: Distribución por Matriz — usa formatType() directo (misma lógica que columna TIPO del historial)
 function renderChartE_MatrixRisk(data) {
     const canvas = document.getElementById('chartMatrixRisk');
     if (!canvas) return;
@@ -1557,41 +1557,32 @@ function renderChartE_MatrixRisk(data) {
 
     const matrixLabels = ['Alimento T1', 'Alimento T2', 'Alimento T3', 'Superficies', 'Manipuladores'];
     
-    // Función ultra-robusta: busca coincidencias por campo tipo, descripción o palabras clave
-    const filterByLabel = (label, state) => {
-        const target = label.toLowerCase().trim();
-        
+    // Contar registros por la etiqueta exacta de formatType (la misma que la columna TIPO)
+    const countByLabel = (label, state) => {
         return data.filter(d => {
-            const rawType = (d.type || '').toLowerCase().trim();
-            const rawSample = (d.sample || '').toLowerCase();
-            const currentLabel = formatType(d.type).toLowerCase().trim();
+            // Usa formatType para clasificar — idéntico a lo que muestra la tabla
+            if (formatType(d.type) !== label) return false;
             
-            let isMatch = (currentLabel === target);
-            
-            // Fallbacks de emergencia si el dato fue mal clasificado al guardar
-            if (!isMatch) {
-                if (target.includes('superficie')) {
-                    isMatch = rawType.includes('superficie') || rawSample.includes('mesada') || rawSample.includes('tabla') || d.zona;
-                } else if (target.includes('manipulador')) {
-                    isMatch = rawType.includes('manos') || rawType.includes('manipulador') || rawSample.includes('manos');
-                } else if (target === 'alimento t1' && (rawType === 'alimento' || (rawType === '' && !rawSample.includes('mesada')))) {
-                    isMatch = true;
-                }
-            }
-            
-            if (!isMatch) return false;
-            
-            const currentState = d.state || 'success';
-            if (state === 'success') return currentState === 'success';
-            if (state === 'obs') return currentState === 'obs' || (currentState === 'success' && d.rawValue?.toLowerCase().includes('obs'));
-            if (state === 'error') return currentState === 'error';
+            const st = d.state || 'success';
+            if (state === 'success') return st === 'success';
+            if (state === 'obs') return st === 'obs';
+            if (state === 'error') return st === 'error';
             return false;
         }).length;
     };
 
-    const successData = matrixLabels.map(l => filterByLabel(l, 'success'));
-    const obsData = matrixLabels.map(l => filterByLabel(l, 'obs'));
-    const errorData = matrixLabels.map(l => filterByLabel(l, 'error'));
+    const successData = matrixLabels.map(l => countByLabel(l, 'success'));
+    const obsData = matrixLabels.map(l => countByLabel(l, 'obs'));
+    const errorData = matrixLabels.map(l => countByLabel(l, 'error'));
+
+    // Debug: mostrar distribución real en consola
+    console.log('Chart E — Distribución por Matriz:', matrixLabels.map((l, i) => 
+        `${l}: OK=${successData[i]} OBS=${obsData[i]} ERR=${errorData[i]}`
+    ));
+    // También loguear los tipos raw para diagnóstico
+    const typeCounts = {};
+    data.forEach(d => { const t = d.type || '(vacío)'; typeCounts[t] = (typeCounts[t] || 0) + 1; });
+    console.log('Chart E — Tipos raw en datos:', typeCounts);
 
     if (charts['chartMatrixRisk']) charts['chartMatrixRisk'].destroy();
     charts['chartMatrixRisk'] = new Chart(ctx, {
@@ -1624,12 +1615,6 @@ function renderChartE_MatrixRisk(data) {
                 }
             }
         }
-    });
-
-    console.log("BioGuard Trends Debug:", {
-        labels: matrixLabels,
-        success: successData,
-        sourceCount: data.length
     });
 }
 
