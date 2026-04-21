@@ -1046,12 +1046,12 @@ let formIsEditing = null;
 
 function formatType(type) {
     const types = { 
-        'alimento': 'Alimento', 
+        'alimento': 'Alimento T1', 
         'alimento_t1': 'Alimento T1', 
         'alimento_t2': 'Alimento T2',
         'alimento_t3': 'Alimento T3',
-        'hisopado_superficie': 'Superficie', 
-        'hisopado_manipulador': 'Manipulador' 
+        'hisopado_superficie': 'Superficies', 
+        'hisopado_manipulador': 'Manipuladores' 
     };
     return types[type] || type;
 }
@@ -1555,19 +1555,14 @@ function renderChartE_MatrixRisk(data) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
-    const matrices = ['alimento_t1', 'alimento_t2', 'alimento_t3', 'hisopado_superficie', 'hisopado_manipulador'];
     const matrixLabels = ['Alimento T1', 'Alimento T2', 'Alimento T3', 'Superficies', 'Manipuladores'];
     
-    // Función de ayuda para normalizar el tipo y el estado
-    const filterByMatrix = (m, state) => {
+    // Función robusta que usa la misma lógica que la tabla del historial
+    const filterByLabel = (label, state) => {
         return data.filter(d => {
-            const rawType = (d.type || '').toLowerCase();
-            const shortKey = m.replace('hisopado_', '');
-            
-            // Coincidencia con llave completa (alimento_t1) o simplificada (superficie)
-            const typeMatch = (rawType === m || rawType === shortKey || (m === 'alimento_t1' && rawType === 'alimento'));
-            
-            if (!typeMatch) return false;
+            const currentLabel = formatType(d.type);
+            // Coincidencia exacta con lo que el usuario ve en la columna "TIPO"
+            if (currentLabel !== label) return false;
             
             const currentState = d.state || 'success';
             if (state === 'success') return currentState === 'success';
@@ -1577,9 +1572,9 @@ function renderChartE_MatrixRisk(data) {
         }).length;
     };
 
-    const successData = matrices.map(m => filterByMatrix(m, 'success'));
-    const obsData = matrices.map(m => filterByMatrix(m, 'obs'));
-    const errorData = matrices.map(m => filterByMatrix(m, 'error'));
+    const successData = matrixLabels.map(l => filterByLabel(l, 'success'));
+    const obsData = matrixLabels.map(l => filterByLabel(l, 'obs'));
+    const errorData = matrixLabels.map(l => filterByLabel(l, 'error'));
 
     if (charts['chartMatrixRisk']) charts['chartMatrixRisk'].destroy();
     charts['chartMatrixRisk'] = new Chart(ctx, {
