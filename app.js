@@ -862,8 +862,8 @@ function updateDashboard() {
     
     // 1. Calculate Core Metrics
     const total = results.length;
-    const aptoCount = results.filter(r => r.state === 'success').length;
-    const obsCount = results.filter(r => r.state === 'obs' || (r.state === 'success' && r.rawValue?.toLowerCase().includes('obs'))).length;
+    const aptoCount = results.filter(r => (r.state || 'success') === 'success').length;
+    const obsCount = results.filter(r => (r.state === 'obs') || ((r.state || 'success') === 'success' && r.rawValue?.toLowerCase().includes('obs'))).length;
     const dangerCount = results.filter(r => r.state === 'error').length;
     const compliancePct = total > 0 ? ((aptoCount / total) * 100).toFixed(1) : 0;
 
@@ -1556,11 +1556,30 @@ function renderChartE_MatrixRisk(data) {
     const ctx = canvas.getContext('2d');
 
     const matrices = ['alimento_t1', 'alimento_t2', 'alimento_t3', 'hisopado_superficie', 'hisopado_manipulador'];
-    const matrixLabels = ['Alimento T1', 'Alimento T2', 'Alimento Tipo 3', 'Superficie', 'Hisopado Manos'];
+    const matrixLabels = ['Alimento T1', 'Alimento T2', 'Alimento T3', 'Superficies', 'Manipuladores'];
     
-    const successData = matrices.map(m => data.filter(d => d.type === m && d.state === 'success').length);
-    const obsData = matrices.map(m => data.filter(d => d.type === m && d.state === 'obs').length);
-    const errorData = matrices.map(m => data.filter(d => d.type === m && d.state === 'error').length);
+    // Función de ayuda para normalizar el tipo y el estado
+    const filterByMatrix = (m, state) => {
+        return data.filter(d => {
+            const rawType = (d.type || '').toLowerCase();
+            const shortKey = m.replace('hisopado_', '');
+            
+            // Coincidencia con llave completa (alimento_t1) o simplificada (superficie)
+            const typeMatch = (rawType === m || rawType === shortKey || (m === 'alimento_t1' && rawType === 'alimento'));
+            
+            if (!typeMatch) return false;
+            
+            const currentState = d.state || 'success';
+            if (state === 'success') return currentState === 'success';
+            if (state === 'obs') return currentState === 'obs' || (currentState === 'success' && d.rawValue?.toLowerCase().includes('obs'));
+            if (state === 'error') return currentState === 'error';
+            return false;
+        }).length;
+    };
+
+    const successData = matrices.map(m => filterByMatrix(m, 'success'));
+    const obsData = matrices.map(m => filterByMatrix(m, 'obs'));
+    const errorData = matrices.map(m => filterByMatrix(m, 'error'));
 
     if (charts['chartMatrixRisk']) charts['chartMatrixRisk'].destroy();
     charts['chartMatrixRisk'] = new Chart(ctx, {
