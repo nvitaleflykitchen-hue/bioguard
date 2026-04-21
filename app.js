@@ -1045,15 +1045,19 @@ window.editResult = function(protocol, date) {
 let formIsEditing = null;
 
 function formatType(type) {
+    if (!type) return type;
+    const cleanType = String(type).toLowerCase().trim();
     const types = { 
         'alimento': 'Alimento T1', 
         'alimento_t1': 'Alimento T1', 
         'alimento_t2': 'Alimento T2',
         'alimento_t3': 'Alimento T3',
         'hisopado_superficie': 'Superficies', 
-        'hisopado_manipulador': 'Manipuladores' 
+        'superficie': 'Superficies', 
+        'hisopado_manipulador': 'Manipuladores',
+        'manipulador': 'Manipuladores'
     };
-    return types[type] || type;
+    return types[cleanType] || type;
 }
 
 function formatOrganism(org) {
