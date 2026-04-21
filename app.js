@@ -950,6 +950,22 @@ function updateHistory() {
     const searchInput = document.getElementById('history-search');
     const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
     
+    // Apply Global Period Filter (same as dashboard)
+    const periodFilter = document.getElementById('period-filter');
+    if (periodFilter && periodFilter.value !== 'all') {
+        const now = new Date();
+        let cutoff = new Date();
+        const p = periodFilter.value;
+        if (p === '6m') cutoff.setMonth(now.getMonth() - 6);
+        else if (p === '3m') cutoff.setMonth(now.getMonth() - 3);
+        else if (p === '12m') cutoff.setFullYear(now.getFullYear() - 1);
+        
+        results = results.filter(r => {
+            const rd = new Date(r.date);
+            return rd >= cutoff && rd <= now; // Solo fechas pasadas válidas dentro del corte
+        });
+    }
+
     const tbody = document.getElementById('history-results');
     if (!tbody) return;
     
@@ -966,11 +982,14 @@ function updateHistory() {
     
     if (results.length === 0) {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="8" style="text-align: center;">No hay registros disponibles.</td>`;
+        tr.innerHTML = `<td colspan="10" style="text-align: center; padding: 2rem;">No se encontraron registros para el período/criterio seleccionado. (Verifique los años ingresados)</td>`;
         tbody.appendChild(tr);
         return;
     }
     
+    // Ordenar de más reciente a más antiguo para que quede claro
+    results.sort((a,b) => new Date(b.date) - new Date(a.date));
+
     results.forEach(res => {
         const tr = document.createElement('tr');
         const displayVal = res.rawValue ? res.rawValue : `${formatNumber(res.value)} <small>UFC</small>`;
