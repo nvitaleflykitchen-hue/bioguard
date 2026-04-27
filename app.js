@@ -739,6 +739,8 @@ window.addManualAssay = function(prefill = null, suffix = '') {
                 <option value="clostridium" ${prefill?.org==='clostridium'?'selected':''}>Clostridium perfringens</option>
                 <option value="bacillus" ${prefill?.org==='bacillus'?'selected':''}>Bacillus cereus</option>
                 <option value="anaerobios" ${prefill?.org==='anaerobios'?'selected':''}>Anaerobios Sulfitos Red.</option>
+                <option value="mohos" ${prefill?.org==='mohos'?'selected':''}>Mohos</option>
+                <option value="levaduras" ${prefill?.org==='levaduras'?'selected':''}>Levaduras</option>
             </select>
         </td>
         <td>
@@ -826,9 +828,10 @@ function setupForm() {
             let numValue = cleanNumericValue(rawVal);
             
             let threshold = 10;
-            if (micro === 'aerobios') threshold = 10000;
+            if (micro === 'aerobios') threshold = (baseData.type === 'hisopado_superficie') ? 100 : 10000;
             if (micro === 'salmonella' || micro === 'listeria') threshold = 0;
-            if (micro === 'coliformes') threshold = 100;
+            if (micro === 'coliformes') threshold = (baseData.type === 'hisopado_superficie') ? 10 : 100;
+            if (micro === 'mohos' || micro === 'levaduras') threshold = (baseData.type === 'hisopado_superficie') ? 10 : 100;
 
             let state = (numValue <= threshold) ? 'success' : 'error';
             if ((micro === 'salmonella' || micro === 'listeria' || micro === 'ecoli157') && numValue > 0) state = 'error';
@@ -1133,6 +1136,8 @@ const MICRO_CRITERIA = {
     clostridium:   { m: 10,     M: 100,     unit: 'UFC/g',         label: 'Clostridium p.' },
     bacillus:      { m: 100,    M: 1000,    unit: 'UFC/g',         label: 'Bacillus cereus' },
     anaerobios:    { m: 10,     M: 100,     unit: 'UFC/g',         label: 'Anaerobios S.R.' },
+    mohos:         { m: 10,     M: 100,     unit: 'UFC/g',         label: 'Mohos' },
+    levaduras:     { m: 10,     M: 100,     unit: 'UFC/g',         label: 'Levaduras' },
 };
 
 function getPointColor(state) {
@@ -2237,19 +2242,25 @@ function setupPDFScanner() {
 
     dropZone.onclick = () => fileInput.click();
 
+    dropZone.ondragenter = (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    };
+
     dropZone.ondragover = (e) => {
         e.preventDefault();
         dropZone.classList.add('dragover');
     };
 
-    dropZone.ondragleave = () => {
+    dropZone.ondragleave = (e) => {
+        e.preventDefault();
         dropZone.classList.remove('dragover');
     };
 
     dropZone.ondrop = (e) => {
         e.preventDefault();
         dropZone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) {
+        if (e.dataTransfer.files && e.dataTransfer.files.length) {
             processPDF(e.dataTransfer.files[0]);
         }
     };
@@ -2449,12 +2460,13 @@ window.registerAllSamples = function() {
                 let unitValue = tr.querySelector('.matrix-unit')?.value || '';
                 
                 let threshold = 10;
-                if (micro === 'aerobios') threshold = 10000;
+                if (micro === 'aerobios') threshold = (baseData.type === 'hisopado_superficie') ? 100 : 10000;
                 if (micro === 'salmonella' || micro === 'listeria') threshold = 0;
-                if (micro === 'coliformes') threshold = 100;
+                if (micro === 'coliformes') threshold = (baseData.type === 'hisopado_superficie') ? 10 : 100;
                 if (micro === 'staphylococcus') threshold = 100;
                 if (micro === 'anaerobios') threshold = 1000;
                 if (micro === 'bacillus') threshold = 1000;
+                if (micro === 'mohos' || micro === 'levaduras') threshold = (baseData.type === 'hisopado_superficie') ? 10 : 100;
 
                 let state = (numValue <= threshold) ? 'success' : 'error';
                 if ((micro === 'salmonella' || micro === 'listeria' || micro === 'ecoli157') && numValue > 0) state = 'error';
@@ -2500,9 +2512,9 @@ window.registerAllSamples = function() {
 function extractAndFillData(text, fileName) {
     const cleanText = text.replace(/ISO\s*[\d\.\-:]+(?:\s*:\s*\d{4})?(?:,?\s*Amd:\s*\d{4})?/ig, ' ');
     
-    // 3. Detección de Múltiples Muestras (CEPROCOR Format)
-    const blocks = cleanText.split(/DATOS DE LA MUESTRA/i);
-    const sampleBlocks = blocks.filter((b, i) => i > 0 && b.trim().length > 100);
+    // 3. Detección de Múltiples Muestras (CEPROCOR, PCCLAB, etc)
+    const blocks = cleanText.split(/(?:DATOS DE LA MUESTRA|PROTOCOLO DE ANÁLISIS|MUESTRA N°|IDENTIFICACIÓN DE LA MUESTRA)/i);
+    const sampleBlocks = blocks.filter((b, i) => i > 0 && b.trim().length > 50);
     
     const selectorContainer = document.getElementById('multi-sample-selector-container');
     const multiContainer = document.getElementById('multi-forms-container');
@@ -2603,7 +2615,7 @@ function fillFormFromBlock(targetBlock, cleanText, fileName, totalSamplesDetecte
     if (protoEl) protoEl.value = protocolId || 'LAB-' + Math.floor(Math.random() * 9000);
 
     // 4. Extracción de Fecha
-    const dateLabels = [/Fecha toma de muestra/i, /Fecha de toma de muestras/i, /Fecha de recepción/i];
+    const dateLabels = [/Fecha del análisis/i, /Fecha de ensayo/i, /Fecha toma de muestra/i, /Fecha de toma de muestras/i, /Fecha de recepción/i, /Fecha de emisión/i];
     let extractedDate = null;
     
     for (let label of dateLabels) {
@@ -2685,7 +2697,9 @@ function fillFormFromBlock(targetBlock, cleanText, fileName, totalSamplesDetecte
         { key: 'listeria', labels: [/Listeria/i, /monocytógenes/i] },
         { key: 'clostridium', labels: [/Clostridium/i, /perfringens/i] },
         { key: 'bacillus', labels: [/Bacillus/i, /cereus/i] },
-        { key: 'anaerobios', labels: [/Anaerobios\s*Sulfitos/i, /Sulfitos\s*Reductores/i] }
+        { key: 'anaerobios', labels: [/Anaerobios\s*Sulfitos/i, /Sulfitos\s*Reductores/i] },
+        { key: 'mohos', labels: [/Mohos/i, /Hongos/i] },
+        { key: 'levaduras', labels: [/Levaduras/i] }
     ];
 
     const valueRegex = /(Ausencia|Presencia|(?:<|>)\s*\d+(?:\/\d+)?(?:\.\d+)?\b|\b\d+(?:[.,]\d+)?(?!\s*(?:g|gr|ml|cm|ufc|nmp)(?!\w))\b)/i;
