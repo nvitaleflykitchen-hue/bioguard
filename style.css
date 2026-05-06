@@ -108,6 +108,22 @@ input:-webkit-autofill:focus {
 }
 .login-overlay-premium.active { visibility: visible; opacity: 1; }
 
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin: 1.5rem 0;
+}
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border);
+}
+.divider span {
+    padding: 0 10px;
+}
 /* Animated mesh background */
 .bio-bg-container {
     position: absolute; inset: 0;
