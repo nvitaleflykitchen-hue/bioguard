@@ -839,12 +839,20 @@ select option {
     border-bottom: 1px solid var(--border);
 }
 .table-container.glass tbody td {
-    padding: 12px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
     color: var(--text-primary);
     vertical-align: middle;
+    transition: background 0.2s;
 }
-.table-container.glass tbody tr:hover { background: rgba(255,255,255,0.02); }
+.table-container.glass tbody tr {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.table-container.glass tbody tr:hover { 
+    background: rgba(255,255,255,0.03); 
+    transform: scale(1.002);
+    box-shadow: inset 3px 0 0 var(--accent);
+}
 
 .badge, .badge-success, .badge-error {
     display: inline-flex; padding: 3px 10px;
@@ -869,27 +877,63 @@ select option {
     margin: 0 2rem 1.5rem;
     border: 2px dashed var(--border);
     border-radius: var(--r-lg);
-    padding: 2.5rem;
+    padding: 3rem;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s;
-    background: rgba(255,255,255,0.01);
+    cursor: pointer; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(145deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%);
     position: relative;
+    overflow: hidden;
 }
-.pdf-upload-container:hover { border-color: var(--accent); background: var(--accent-dim); }
-.upload-content { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
-.upload-icon { width: 40px; height: 40px; color: var(--text-muted); }
-.upload-content h3 { font-size: 1rem; color: var(--text-primary); }
-.upload-content p { font-size: 0.85rem; color: var(--text-muted); }
+.pdf-upload-container::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at center, var(--accent-dim) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.pdf-upload-container:hover { 
+    border-color: var(--accent); 
+    box-shadow: 0 0 20px rgba(99,102,241,0.1);
+    transform: translateY(-2px);
+}
+.pdf-upload-container:hover::before {
+    opacity: 1;
+}
+.pdf-upload-container.dragover {
+    border-color: var(--accent-2);
+    background: rgba(56, 189, 248, 0.05);
+    transform: scale(1.02);
+}
+.upload-content { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; position: relative; z-index: 1; }
+.upload-icon { 
+    width: 48px; height: 48px; color: var(--accent); 
+    transition: transform 0.3s ease;
+}
+.pdf-upload-container:hover .upload-icon {
+    transform: translateY(-5px) scale(1.05);
+}
+.upload-content h3 { font-size: 1.1rem; color: var(--text-primary); font-weight: 600; margin-bottom: 0; }
+.upload-content p { font-size: 0.9rem; color: var(--text-secondary); max-width: 250px; line-height: 1.4; margin: 0; }
 
 .scan-overlay {
     position: absolute; inset: 0; border-radius: var(--r-lg);
-    background: rgba(8,12,24,0.9);
+    background: rgba(8,12,24,0.95);
+    backdrop-filter: blur(4px);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 12px; z-index: 5; display: none;
+    gap: 16px; z-index: 5; display: none;
 }
-.scan-overlay.active { display: flex; }
-.scanning-icon { width: 32px; height: 32px; color: var(--accent); animation: spin 1.4s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.scan-overlay.scanning { display: flex; }
+.scanning-icon { 
+    width: 40px; height: 40px; color: var(--accent-2); 
+    animation: pulseScan 1.5s ease-in-out infinite alternate; 
+}
+@keyframes pulseScan { 
+    0% { transform: scale(0.9); opacity: 0.7; filter: drop-shadow(0 0 5px var(--accent-2)); } 
+    100% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 15px var(--accent-2)); } 
+}
 
 .form-container {
     margin: 0 2rem 2rem;
@@ -1097,6 +1141,81 @@ select option {
     border-top: 1px solid var(--border);
     display: flex; gap: 1rem; align-items: center;
     font-size: 0.82rem; color: var(--text-secondary);
+}
+
+/* ══════════════════════════════════════════
+   TOAST NOTIFICATIONS (Custom UI)
+   ══════════════════════════════════════════ */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+.toast {
+    background: rgba(13, 18, 37, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-md);
+    padding: 16px 20px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+    pointer-events: auto;
+    max-width: 380px;
+    position: relative;
+    overflow: hidden;
+}
+.toast::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+}
+.toast.success::before { background: var(--success); }
+.toast.error::before { background: var(--danger); }
+.toast.info::before { background: var(--info); }
+.toast.warning::before { background: var(--warning); }
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+.toast-icon { width: 22px; height: 22px; flex-shrink: 0; }
+.toast.success .toast-icon { color: var(--success); }
+.toast.error .toast-icon { color: var(--danger); }
+.toast.info .toast-icon { color: var(--info); }
+.toast.warning .toast-icon { color: var(--warning); }
+
+/* ── MICRO-INTERACTIONS (Glow Effects) ── */
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+}
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+}
+.btn-primary:hover::after {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* ── MISC ── */
